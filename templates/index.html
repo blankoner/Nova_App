@@ -1,88 +1,432 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Find Your path</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>Nova — Find Your Path</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
   <style>
-    body { background: #f0f4f8; }
-    .chat-box {
-      height: 420px;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --violet: #6B21FF;
+      --violet-dark: #4A0FCC;
+      --violet-light: #9B5FFF;
+      --white: #ffffff;
+      --off-white: #F7F7F9;
+      --ink: #0D0D0D;
+      --muted: #999;
+      --border: #E2E2E6;
+      --step-active: rgba(255,255,255,1);
+      --step-inactive: rgba(255,255,255,0.35);
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      display: grid;
+      grid-template-columns: 52% 1fr;
+      height: 100vh;
+    }
+
+    /* ── LEFT PANEL ── */
+    .left {
+      background: var(--violet);
+      background-image:
+        radial-gradient(ellipse at 20% 80%, var(--violet-light) 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 10%, #8B3FFF 0%, transparent 50%);
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 2.5rem 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .left::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      opacity: 0.9;
+    }
+    .logo-cross { font-size: 1.2rem; font-weight: 300; }
+
+    .left-body { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 2rem 0; }
+
+    .eyebrow {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      opacity: 0.7;
+      margin-bottom: 1.4rem;
+    }
+
+    .headline {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(3rem, 5vw, 4.5rem);
+      font-weight: 800;
+      line-height: 1.0;
+      margin-bottom: 1.8rem;
+    }
+    .headline em { font-style: italic; font-weight: 700; }
+
+    .subline {
+      font-size: 0.95rem;
+      font-weight: 300;
+      line-height: 1.65;
+      opacity: 0.8;
+      max-width: 340px;
+    }
+
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      opacity: 0.4;
+      transition: opacity 0.4s;
+    }
+    .step.active { opacity: 1; }
+    .step-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      width: 28px;
+    }
+    .step-label {
+      font-size: 0.85rem;
+      font-weight: 400;
+    }
+    .step-bar {
+      width: 2px;
+      height: 20px;
+      background: rgba(255,255,255,0.2);
+      margin-left: 14px;
+    }
+    .step.active .step-label { font-weight: 700; }
+
+    /* ── RIGHT PANEL ── */
+    .right {
+      background: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
       overflow-y: auto;
-      background: #fff;
-      border-radius: 12px;
-      padding: 1.25rem;
-      border: 1px solid #dee2e6;
+    }
+
+    .panel {
+      width: 100%;
+      max-width: 400px;
+      display: none;
+      flex-direction: column;
+      gap: 0;
+      animation: fadeUp 0.4s ease both;
+    }
+    .panel.active { display: flex; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-tag {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--violet);
+      margin-bottom: 1.2rem;
+    }
+
+    .panel-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.1;
+      margin-bottom: 0.7rem;
+    }
+
+    .panel-sub {
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 300;
+      margin-bottom: 2.4rem;
+      line-height: 1.5;
+    }
+
+    /* Form fields */
+    .field { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.6rem; }
+    .field label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+    .field input {
+      border: none;
+      border-bottom: 1.5px solid var(--border);
+      padding: 0.7rem 0;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      color: var(--ink);
+      background: transparent;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .field input:focus { border-color: var(--violet); }
+    .field input::placeholder { color: var(--muted); font-weight: 300; }
+
+    /* Chat box */
+    .chat-scroll {
+      height: 320px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1.4rem;
+      padding-right: 4px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
     }
     .bubble {
-      max-width: 78%;
-      padding: 0.6rem 1rem;
-      border-radius: 18px;
-      margin-bottom: 0.5rem;
+      max-width: 82%;
+      padding: 0.65rem 1rem;
+      border-radius: 16px;
+      font-size: 0.9rem;
       line-height: 1.5;
-      font-size: 0.95rem;
     }
-    .bubble-ai   { background: #e9ecef; color: #212529; border-bottom-left-radius: 4px; }
-    .bubble-user { background: #0d6efd; color: #fff;    border-bottom-right-radius: 4px; }
-    .typing { opacity: 0.5; font-style: italic; font-size: 0.88rem; }
+    .bubble-ai {
+      background: var(--off-white);
+      color: var(--ink);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    .bubble-user {
+      background: var(--violet);
+      color: var(--white);
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    .typing-dot {
+      display: inline-flex; gap: 3px; padding: 0.65rem 1rem;
+      background: var(--off-white); border-radius: 16px; border-bottom-left-radius: 4px;
+      align-self: flex-start;
+    }
+    .typing-dot span {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--muted);
+      animation: blink 1.2s infinite;
+    }
+    .typing-dot span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink {
+      0%,80%,100% { opacity: 0.2; transform: scale(0.8); }
+      40%          { opacity: 1;   transform: scale(1); }
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 0.6rem;
+      border-top: 1.5px solid var(--border);
+      padding-top: 1rem;
+    }
+    .chat-input-row input {
+      flex: 1;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.92rem;
+      color: var(--ink);
+      outline: none;
+      background: transparent;
+    }
+    .chat-input-row input::placeholder { color: var(--muted); }
+
+    /* Buttons */
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: var(--ink); color: var(--white);
+      border: none; border-radius: 6px;
+      padding: 0.85rem 1.5rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem; font-weight: 500;
+      cursor: pointer; transition: background 0.2s, transform 0.15s;
+      text-decoration: none;
+    }
+    .btn-primary:hover { background: #1a1a2e; transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-violet {
+      background: var(--violet);
+    }
+    .btn-violet:hover { background: var(--violet-dark); }
+
+    .btn-icon {
+      background: var(--violet); border: none; border-radius: 6px;
+      width: 38px; height: 38px; display: flex; align-items: center;
+      justify-content: center; cursor: pointer;
+      transition: background 0.2s, transform 0.15s; flex-shrink: 0;
+    }
+    .btn-icon:hover { background: var(--violet-dark); transform: scale(1.05); }
+    .btn-icon:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .btn-icon svg { fill: white; }
+
+    .alt-link {
+      margin-top: 1.6rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .alt-link a { color: var(--violet); font-weight: 500; text-decoration: none; }
+    .alt-link a:hover { text-decoration: underline; }
+
+    .divider { height: 1px; background: var(--border); margin: 1.6rem 0; }
   </style>
 </head>
 <body>
-<div class="container py-5" style="max-width:680px">
-  <div class="text-center mb-4">
-    <h1 class="h3 fw-bold">Find Your path</h1>
-    <p class="text-muted">Please answer for a few questions and I will help You find a job.</p>
+
+<!-- ── LEFT ────────────────────────────────────── -->
+<div class="left">
+  <div class="logo"><span class="logo-cross">+</span> Nova</div>
+
+  <div class="left-body">
+    <p class="eyebrow">A career compass for students</p>
+    <h1 class="headline">Find your<br><em>path.</em></h1>
+    <p class="subline">Discover the studies and careers that match who you are — through short interviews, playful tests, and real-world matches.</p>
   </div>
 
-  <div class="card shadow-sm border-0">
-    <div class="card-body p-4">
-      <div class="chat-box mb-3" id="chatBox">
-        <div class="d-flex justify-content-start">
-          <div class="bubble bubble-ai">
-            Hello, please click Begin
-          </div>
-        </div>
-      </div>
-
-      <div id="inputArea" class="d-none">
-        <div class="input-group">
-          <input type="text" id="userInput" class="form-control" placeholder="Wpisz odpowiedź…" autocomplete="off">
-          <button class="btn btn-primary" id="sendBtn" onclick="sendMessage()">Send</button>
-        </div>
-      </div>
-
-      <div id="startArea" class="text-center">
-        <button class="btn btn-success btn-lg px-5" onclick="startChat()">Begin</button>
-      </div>
+  <div class="steps">
+    <div class="step active" id="step-dot-1">
+      <span class="step-num">01</span>
+      <span class="step-label">Create your account</span>
     </div>
-  </div>
-
-  <!-- Wyniki profilu (ukryte do końca wywiadu) -->
-  <div id="profileCard" class="card shadow-sm border-0 mt-4 d-none">
-    <div class="card-body p-4">
-      <h5 class="fw-bold mb-3">Your profile</h5>
-      <div id="profileContent"></div>
-      <a href="/wyniki" class="btn btn-primary mt-3 w-100">See matching offers</a>
+    <div class="step" id="step-dot-2">
+      <span class="step-num">02</span>
+      <span class="step-label">Tell us about you</span>
+    </div>
+    <div class="step" id="step-dot-3">
+      <span class="step-num">03</span>
+      <span class="step-label">See your matches</span>
     </div>
   </div>
 </div>
 
+<!-- ── RIGHT ───────────────────────────────────── -->
+<div class="right">
+
+  <!-- PANEL 1: Sign up -->
+  <div class="panel active" id="panel-1">
+    <p class="step-tag">Step 01 — Account</p>
+    <h2 class="panel-title">Create your<br>account.</h2>
+    <p class="panel-sub">Let's get you set up. It takes about two minutes.</p>
+
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="inp-email" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="inp-pass" placeholder="At least 8 characters">
+    </div>
+    <div class="field">
+      <label>Confirm password</label>
+      <input type="password" id="inp-pass2" placeholder="Type it again">
+    </div>
+
+    <button class="btn-primary" onclick="goToChat()">Sign up &nbsp;→</button>
+
+    <div class="divider"></div>
+    <p class="alt-link">Already have an account? <a href="#">Log in</a></p>
+  </div>
+
+  <!-- PANEL 2: Chat interview -->
+  <div class="panel" id="panel-2">
+    <p class="step-tag">Step 02 — Interview</p>
+    <h2 class="panel-title">Tell us<br>about you.</h2>
+
+    <div class="chat-scroll" id="chatBox"></div>
+
+    <div class="chat-input-row">
+      <input type="text" id="userInput" placeholder="Type your answer…" autocomplete="off">
+      <button class="btn-icon" id="sendBtn" onclick="sendMessage()">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- PANEL 3: Done / redirect -->
+  <div class="panel" id="panel-3">
+    <p class="step-tag">Step 03 — Matches</p>
+    <h2 class="panel-title">You're all<br>set.</h2>
+    <p class="panel-sub">We've found your top career matches based on your answers.</p>
+    <a href="/wyniki" class="btn-primary btn-violet">See your matches &nbsp;→</a>
+  </div>
+
+</div>
+
 <script>
+  // ── Step nav ─────────────────────────────────────────────────────
+  function setStep(n) {
+    document.querySelectorAll(".panel").forEach((p,i) => {
+      p.classList.toggle("active", i+1 === n);
+    });
+    document.querySelectorAll(".step").forEach((s,i) => {
+      s.classList.toggle("active", i+1 <= n);
+    });
+  }
+
+  // ── Panel 1 → 2 ──────────────────────────────────────────────────
+  async function goToChat() {
+    const email = document.getElementById("inp-email").value.trim();
+    const pass  = document.getElementById("inp-pass").value;
+    const pass2 = document.getElementById("inp-pass2").value;
+    if (!email || pass.length < 8 || pass !== pass2) {
+      alert("Please fill in all fields correctly.");
+      return;
+    }
+    setStep(2);
+    await startChat();
+  }
+
+  // ── Chat logic ───────────────────────────────────────────────────
   const chatBox = document.getElementById("chatBox");
 
   function addBubble(text, role) {
-    const align = role === "user" ? "justify-content-end" : "justify-content-start";
-    const cls   = role === "user" ? "bubble-user" : "bubble-ai";
-    chatBox.innerHTML += `
-      <div class="d-flex ${align}">
-        <div class="bubble ${cls}">${text}</div>
-      </div>`;
+    const div = document.createElement("div");
+    div.className = "bubble " + (role === "user" ? "bubble-user" : "bubble-ai");
+    div.textContent = text;
+    chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
   function showTyping() {
-    chatBox.innerHTML += `<div id="typing" class="typing ms-1">AI pisze…</div>`;
+    const el = document.createElement("div");
+    el.className = "typing-dot"; el.id = "typing";
+    el.innerHTML = "<span></span><span></span><span></span>";
+    chatBox.appendChild(el);
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
@@ -91,14 +435,11 @@
   }
 
   async function startChat() {
-    document.getElementById("startArea").classList.add("d-none");
     showTyping();
-
     const res  = await fetch("/start", { method: "POST" });
     const data = await res.json();
     removeTyping();
     addBubble(data.message, "ai");
-    document.getElementById("inputArea").classList.remove("d-none");
 
     document.getElementById("userInput").addEventListener("keydown", e => {
       if (e.key === "Enter") sendMessage();
@@ -107,12 +448,13 @@
 
   async function sendMessage() {
     const input = document.getElementById("userInput");
-    const text  = input.value.trim();
+    const sendBtn = document.getElementById("sendBtn");
+    const text = input.value.trim();
     if (!text) return;
 
     addBubble(text, "user");
     input.value = "";
-    document.getElementById("sendBtn").disabled = true;
+    sendBtn.disabled = true;
     showTyping();
 
     const res  = await fetch("/chat", {
@@ -122,33 +464,15 @@
     });
     const data = await res.json();
     removeTyping();
-    document.getElementById("sendBtn").disabled = false;
+    sendBtn.disabled = false;
 
     if (data.message) addBubble(data.message, "ai");
 
-    if (data.done && data.profile) {
-      document.getElementById("inputArea").classList.add("d-none");
-      showProfile(data.profile);
+    if (data.done) {
+      setTimeout(() => setStep(3), 800);
     }
 
     input.focus();
-  }
-
-  function showProfile(p) {
-    const labels = {
-      age: "Age", status: "Status", type: "Searching",
-      availability: "Availability", hobbies: "Hobbies"
-    };
-    let html = '<ul class="list-group list-group-flush">';
-    for (const [k, v] of Object.entries(p)) {
-      const val = Array.isArray(v) ? v.join(", ") : v;
-      html += `<li class="list-group-item d-flex justify-content-between">
-        <span class="text-muted">${labels[k] ?? k}</span>
-        <strong>${val}</strong></li>`;
-    }
-    html += "</ul>";
-    document.getElementById("profileContent").innerHTML = html;
-    document.getElementById("profileCard").classList.remove("d-none");
   }
 </script>
 </body>
