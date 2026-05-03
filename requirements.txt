@@ -1,0 +1,9 @@
+pandas
+groq
+os
+re
+json
+flask
+dotenv
+matcher
+
