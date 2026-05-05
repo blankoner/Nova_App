@@ -13,3 +13,13 @@ htmlcov/
 dist/
 build/
 *.egg-info/
+
+# Node / frontend
+node_modules/
+.vite/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
