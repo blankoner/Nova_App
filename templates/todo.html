@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nova — To-Do List</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --violet: #6B21FF;
+      --violet-dark: #4A0FCC;
+      --violet-light: #9B5FFF;
+      --white: #ffffff;
+      --off-white: #F7F7F9;
+      --ink: #0D0D0D;
+      --muted: #999;
+      --border: #E2E2E6;
+    }
+    html, body {
+      height: 100%;
+      margin:0px;
+      overflow: hidden;
+    }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      display: grid;
+      grid-template-columns: 90px 52% 1fr;
+      height: 100vh;
+      background: white;
+    }
+    .sidebar {
+      background: #0A0A0F;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 1.5rem 1rem;
+      border-right: 1px solid rgba(255,255,255,0.06);
+    }
+    .sidebar-top,
+    .sidebar-bottom {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+    .sidebar-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: var(--violet);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      margin-bottom: 1.2rem;
+    }
+    .side-item {
+      width: 100%;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.72);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.9rem 0.4rem;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: 0.25s;
+      font-size: 0.72rem;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .side-item span:first-child {
+      font-size: 1.1rem;
+    }
+    .side-item:hover {
+      background: rgba(255,255,255,0.06);
+      color: white;
+      transform: translateY(-1px);
+    }
+    .side-item.active {
+      background: var(--violet);
+      color: white;
+      box-shadow: 0 10px 30px rgba(107,33,255,0.3);
+    }
+    .left {
+      background: var(--violet);
+      background-image:
+        radial-gradient(ellipse at 20% 80%, var(--violet-light) 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 10%, #8B3FFF 0%, transparent 50%);
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 2.5rem 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .left::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      opacity: 0.9;
+    }
+    .logo-cross {
+      font-size: 1.2rem;
+      font-weight: 300;
+    }
+    .left-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 2rem 0;
+    }
+    .headline {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.2rem, 4vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.0;
+      margin-bottom: 1.2rem;
+    }
+    .headline em {
+      font-style: italic;
+      font-weight: 700;
+    }
+    .subline {
+      font-size: 0.95rem;
+      font-weight: 300;
+      line-height: 1.65;
+      opacity: 0.8;
+      max-width: 340px;
+    }
+    .right {
+      background: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+      overflow-y: auto;
+    }
+    .todo-panel {
+      width: 100%;
+      max-width: 400px;
+      background: var(--off-white);
+      border-radius: 18px;
+      box-shadow: 0 8px 32px rgba(107,33,255,0.08);
+      padding: 2.2rem 2rem 2rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      animation: fadeUp 0.4s ease both;
+    }
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .todo-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--ink);
+      margin-bottom: 0.2rem;
+    }
+    .todo-form {
+      display: flex;
+      gap: 0.7rem;
+      margin-bottom: 1.2rem;
+    }
+    .todo-form input[type="text"] {
+      flex: 1;
+      padding: 0.7rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      font-size: 1rem;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+      background: var(--white);
+      color: var(--ink);
+    }
+    .todo-form input[type="text"]:focus {
+      border-color: var(--violet);
+    }
+    .btn-primary {
+      background: var(--violet);
+      color: var(--white);
+      border: none;
+      border-radius: 7px;
+      padding: 0.7rem 1.2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover {
+      background: var(--violet-dark);
+    }
+    .todo-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+    .todo-item {
+      background: var(--white);
+      border-radius: 7px;
+      padding: 0.8rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 1rem;
+      color: var(--ink);
+      box-shadow: 0 2px 8px rgba(107,33,255,0.04);
+      transition: box-shadow 0.2s;
+    }
+    .todo-item:hover {
+      box-shadow: 0 4px 16px rgba(107,33,255,0.08);
+    }
+    .remove-btn {
+      background: none;
+      border: none;
+      color: var(--violet);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0 0.3rem;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .remove-btn:hover {
+      background: var(--violet-light);
+      color: var(--white);
+    }
+  </style>
+</head>
+<body>
+  <!-- ─────────────── SIDEBAR ─────────────── -->
+<div class="sidebar">
+
+  <div class="sidebar-top">
+
+    <div class="sidebar-logo">N</div>
+
+    <button class="side-item active"
+      onclick="window.location.href='index.html'">
+      <span>🏠</span>
+      <span>Home</span>
+    </button>
+
+<button class="side-item" id="pomodoro-sidebar-btn">
+  <span>🧠</span>
+  <span>Pomodoro</span>
+</button>
+
+
+    <button class="side-item"
+      onclick="window.location.href='calendar.html'">
+      <span>🗓️</span>
+      <span>Calendar</span>
+    </button>
+
+    <button class="side-item"
+      onclick="window.location.href='careers.html'">
+      <span>💼</span>
+      <span>Careers</span>
+    </button>
+
+
+
+  </div>
+
+  <div class="sidebar-bottom">
+
+    <button class="side-item"
+      onclick="window.location.href='settings.html'">
+      <span>⚙️</span>
+      <span>Settings</span>
+    </button>
+
+  </div>
+
+</div>
+  <!-- ─────────────── LEFT ─────────────── -->
+  <div class="left">
+    <div class="logo">
+      <span class="logo-cross">+</span>
+      Nova
+    </div>
+    <div class="left-body">
+      <h1 class="headline">
+        Your<br>
+        <em>To-Do List</em>
+      </h1>
+      <p class="subline">
+        Organize your tasks and stay productive. Add, complete, and remove tasks as you go!
+      </p>
+    </div>
+  </div>
+  <!-- ─────────────── RIGHT ─────────────── -->
+  <div class="right">
+    <div class="todo-panel">
+      <div class="todo-title">Tasks</div>
+      <form class="todo-form" id="todo-form" autocomplete="off">
+        <input type="text" id="todo-input" placeholder="Add a new task..." required>
+        <button type="submit" class="btn-primary">Add</button>
+      </form>
+      <ul class="todo-list" id="todo-list"></ul>
+    </div>
+  </div>
+  <script>
+    // Simple localStorage-based todo list
+    const form = document.getElementById('todo-form');
+    const input = document.getElementById('todo-input');
+    const list = document.getElementById('todo-list');
+
+    function getTodos() {
+      return JSON.parse(localStorage.getItem('nova_todos') || '[]');
+    }
+    function saveTodos(todos) {
+      localStorage.setItem('nova_todos', JSON.stringify(todos));
+    }
+    function renderTodos() {
+      list.innerHTML = '';
+      const todos = getTodos();
+      todos.forEach((todo, idx) => {
+        const li = document.createElement('li');
+        li.className = 'todo-item';
+        li.innerHTML = `
+          <span>${todo}</span>
+          <button class="remove-btn" title="Remove" data-idx="${idx}">&times;</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const value = input.value.trim();
+      if (!value) return;
+      const todos = getTodos();
+      todos.push(value);
+      saveTodos(todos);
+      input.value = '';
+      renderTodos();
+    });
+    list.addEventListener('click', e => {
+      if (e.target.classList.contains('remove-btn')) {
+        const idx = e.target.getAttribute('data-idx');
+        const todos = getTodos();
+        todos.splice(idx, 1);
+        saveTodos(todos);
+        renderTodos();
+      }
+    });
+    renderTodos();
+  </script>
+</body>
+</html>
