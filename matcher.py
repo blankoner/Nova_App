@@ -4,6 +4,8 @@ matcher.py — matches a user profile JSON to the top-N job offers from SQLite.
 Each offer starts at 0 points. Points are added for:
   - Profile interests matching skills_raw keywords        (+2 per match)
   - Profile field_idea matching title/skills keywords     (+3 per match)
+  - Current field_or_role matching title/skills keywords  (+4 per match if "stay"/open,
+                                                           +1 if user wants to "change")
   - Profile favorite_subjects matching skills/title       (+1 per match)
   - proud_creation keywords matching skills               (+1 per match)
   - work_type preference matching job characteristics     (+2 if match)
@@ -78,6 +80,17 @@ def score_offer(offer: dict, profile: dict) -> int:
             if len(tok) > 3 and tok in haystack:
                 score += 3
 
+    # 2b. Current field of study or job role → title/skills match
+    # Strong signal: this is what the user already does/studies.
+    # If they want to CHANGE jobs, weight it down so we don't recommend the same field.
+    situation = profile.get("situation", {})
+    field_or_role = situation.get("field_or_role")
+    if field_or_role:
+        weight = 1 if profile.get("job_change") == "change" else 4
+        for tok in _tokens(field_or_role):
+            if len(tok) > 3 and tok in haystack:
+                score += weight
+
     # 3. Favorite subjects → skills (+1 each)
     for subj in profile.get("favorite_subjects", []):
         score += _kw_hits(_tokens(subj), haystack)
@@ -118,8 +131,15 @@ def find_top_offers(profile: dict, top_n: int = 5) -> list[dict]:
     for subj in profile.get("favorite_subjects", []):
         fts_terms.extend(_tokens(subj))
 
-    # Allowed levels for this user
+    # Current field/role — include in pre-filter unless the user wants to change.
+    # If they want to change, we still allow scoring against it (with low weight),
+    # but we don't bias the candidate pool toward their current field.
     situation = profile.get("situation", {})
+    field_or_role = situation.get("field_or_role") or ""
+    if field_or_role and profile.get("job_change") != "change":
+        fts_terms.extend(t for t in _tokens(field_or_role) if len(t) > 3)
+
+    # Allowed levels for this user
     detail = situation.get("detail")
     allowed_levels = LEVEL_FOR_SITUATION.get(detail, ["entry", "any"])
     level_placeholders = ",".join("?" * len(allowed_levels))
