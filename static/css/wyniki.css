@@ -1,0 +1,7 @@
+body { background: #f0f4f8; font-family: 'Poppins', sans-serif; }
+h1, h2, h3, h4, h5, h6, .card-title { font-family: 'Outfit', sans-serif; }
+.match-bar-wrap { width: 54px; text-align: center; flex-shrink: 0; }
+.match-pct { font-size: 1.4rem; font-weight: 700; color: #198754; font-family: 'Outfit', sans-serif; }
+.match-pct.mid { color: #0d6efd; }
+.match-pct.low { color: #6c757d; }
+.badge-level { font-size: 0.72rem; }

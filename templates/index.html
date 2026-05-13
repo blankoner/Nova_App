@@ -4,607 +4,97 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Nova — Find Your Path</title>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
-
-  <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    :root {
-      --violet: #6B21FF;
-      --violet-dark: #4A0FCC;
-      --violet-light: #9B5FFF;
-
-      --white: #ffffff;
-      --off-white: #F7F7F9;
-      --ink: #0D0D0D;
-      --muted: #999;
-      --border: #E2E2E6;
-    }
-
-    html, body {
-      height: 100%;
-      overflow: hidden;
-    }
-
-    body {
-      font-family: 'DM Sans', sans-serif;
-      display: grid;
-      grid-template-columns: 90px 52% 1fr;
-      height: 100vh;
-      background: white;
-    }
-
-    /* ───────────────── SIDEBAR ───────────────── */
-
-    .sidebar {
-      background: #0A0A0F;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 1.5rem 1rem;
-      border-right: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .sidebar-top,
-    .sidebar-bottom {
-      display: flex;
-      flex-direction: column;
-      gap: 0.7rem;
-    }
-
-    .sidebar-logo {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      background: var(--violet);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Syne', sans-serif;
-      font-weight: 800;
-      font-size: 1.1rem;
-      margin-bottom: 1.2rem;
-    }
-
-    .side-item {
-      width: 100%;
-      border: none;
-      background: transparent;
-      color: rgba(255,255,255,0.72);
-
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.35rem;
-
-      padding: 0.9rem 0.4rem;
-      border-radius: 14px;
-
-      cursor: pointer;
-      transition: 0.25s;
-
-      font-size: 0.72rem;
-      font-family: 'DM Sans', sans-serif;
-    }
-
-    .side-item span:first-child {
-      font-size: 1.1rem;
-    }
-
-    .side-item:hover {
-      background: rgba(255,255,255,0.06);
-      color: white;
-      transform: translateY(-1px);
-    }
-
-    .side-item.active {
-      background: var(--violet);
-      color: white;
-      box-shadow: 0 10px 30px rgba(107,33,255,0.3);
-    }
-
-    /* ───────────────── LEFT PANEL ───────────────── */
-
-    .left {
-      background: var(--violet);
-
-      background-image:
-        radial-gradient(ellipse at 20% 80%, var(--violet-light) 0%, transparent 55%),
-        radial-gradient(ellipse at 80% 10%, #8B3FFF 0%, transparent 50%);
-
-      color: var(--white);
-
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-
-      padding: 2.5rem 3rem;
-
-      position: relative;
-      overflow: hidden;
-    }
-
-    .left::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-
-      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-
-      pointer-events: none;
-    }
-
-    .logo {
-      font-family: 'Syne', sans-serif;
-      font-weight: 700;
-      font-size: 1rem;
-      letter-spacing: 0.08em;
-
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-
-      opacity: 0.9;
-    }
-
-    .logo-cross {
-      font-size: 1.2rem;
-      font-weight: 300;
-    }
-
-    .left-body {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 2rem 0;
-    }
-
-    .eyebrow {
-      font-size: 0.7rem;
-      font-weight: 400;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-
-      opacity: 0.7;
-      margin-bottom: 1.4rem;
-    }
-
-    .headline {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(3rem, 5vw, 4.5rem);
-      font-weight: 800;
-      line-height: 1.0;
-      margin-bottom: 1.8rem;
-    }
-
-    .headline em {
-      font-style: italic;
-      font-weight: 700;
-    }
-
-    .subline {
-      font-size: 0.95rem;
-      font-weight: 300;
-      line-height: 1.65;
-      opacity: 0.8;
-      max-width: 340px;
-    }
-
-    .steps {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .step {
-      display: flex;
-      align-items: center;
-      gap: 1.2rem;
-      opacity: 0.4;
-      transition: opacity 0.4s;
-    }
-
-    .step.active {
-      opacity: 1;
-    }
-
-    .step-num {
-      font-family: 'Syne', sans-serif;
-      font-size: 0.7rem;
-      font-weight: 700;
-      width: 28px;
-    }
-
-    .step-label {
-      font-size: 0.85rem;
-    }
-
-    /* ───────────────── RIGHT PANEL ───────────────── */
-
-    .right {
-      background: var(--white);
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      padding: 3rem;
-      overflow-y: auto;
-    }
-
-    .panel {
-      width: 100%;
-      max-width: 400px;
-
-      display: none;
-      flex-direction: column;
-
-      animation: fadeUp 0.4s ease both;
-    }
-
-    .panel.active {
-      display: flex;
-    }
-
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(18px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .step-tag {
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-
-      color: var(--violet);
-
-      margin-bottom: 1.2rem;
-    }
-
-    .panel-title {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(1.8rem, 3vw, 2.6rem);
-      font-weight: 800;
-
-      color: var(--ink);
-      line-height: 1.1;
-
-      margin-bottom: 0.7rem;
-    }
-
-    .panel-sub {
-      font-size: 0.9rem;
-      color: var(--muted);
-      font-weight: 300;
-      margin-bottom: 2.4rem;
-      line-height: 1.5;
-    }
-
-    /* ───────────────── FORM ───────────────── */
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-      margin-bottom: 1.6rem;
-    }
-
-    .field label {
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--ink);
-    }
-
-    .field input {
-      border: none;
-      border-bottom: 1.5px solid var(--border);
-
-      padding: 0.7rem 0;
-
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.95rem;
-
-      color: var(--ink);
-      background: transparent;
-
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .field input:focus {
-      border-color: var(--violet);
-    }
-
-    /* ───────────────── BUTTONS ───────────────── */
-
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-
-      background: var(--ink);
-      color: var(--white);
-
-      border: none;
-      border-radius: 6px;
-
-      padding: 0.85rem 1.5rem;
-
-      font-size: 0.9rem;
-      font-weight: 500;
-
-      cursor: pointer;
-      transition: 0.2s;
-
-      text-decoration: none;
-    }
-
-    .btn-primary:hover {
-      background: #1a1a2e;
-      transform: translateY(-1px);
-    }
-
-    .btn-violet {
-      background: var(--violet);
-    }
-
-    .btn-violet:hover {
-      background: var(--violet-dark);
-    }
-
-    .divider {
-      height: 1px;
-      background: var(--border);
-      margin: 1.6rem 0;
-    }
-
-    .alt-link {
-      margin-top: 1.6rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-
-    .alt-link a {
-      color: var(--violet);
-      font-weight: 500;
-      text-decoration: none;
-    }
-
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;800&family=Poppins:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
-
 <body>
-<div id="pomodoro-widget" style="display:none; position:fixed; top:32px; right:32px; z-index:9999;
-  background:white; border-radius:14px; box-shadow:0 4px 24px rgba(0,0,0,0.12); padding:1.2rem 2rem; min-width:180px; text-align:center;">
-  <div style="font-weight:700; color:var(--violet); margin-bottom:0.5rem;">Pomodoro Focus</div>
-  <div id="pomodoro-timer" style="font-size:2.2rem; font-family:'Syne',sans-serif; font-weight:800; color:var(--ink);">25:00</div>
-  <button id="pomodoro-start" class="btn-primary btn-violet" style="margin-top:1rem; font-size:0.9rem;">Start</button>
-  <button id="pomodoro-reset" class="btn-primary" style="margin-top:1rem; font-size:0.9rem; margin-left:0.5rem;">Reset</button>
-</div>
-  <!-- ───────────────── SIDEBAR ───────────────── -->
 
-<div class="sidebar">
+<!-- ── LEFT ────────────────────────────────────── -->
+<div class="left">
+  <div class="logo"><span class="logo-cross">+</span> Nova</div>
 
-  <div class="sidebar-top">
-
-    <div class="sidebar-logo">N</div>
-
-    <button class="side-item active"
-      onclick="window.location.href='index.html'">
-      <span>🏠</span>
-      <span>Home</span>
-    </button>
-
-<button class="side-item" id="pomodoro-sidebar-btn">
-  <span>🧠</span>
-  <span>Pomodoro</span>
-</button>
-
-    <button class="side-item"
-      onclick="window.location.href='todo.html'">
-      <span>🎓</span>
-      <span>To-Do List</span>
-    </button>
-    <button class="side-item"
-      onclick="window.location.href='calendar.html'">
-      <span>🗓️</span>
-      <span>Calendar</span>
-    </button>
-
-    <button class="side-item"
-      onclick="window.location.href='careers.html'">
-      <span>💼</span>
-      <span>Careers</span>
-    </button>
-
-
-
+  <div class="left-body">
+    <p class="eyebrow">A career compass for students</p>
+    <h1 class="headline">Find your<br><em>path.</em></h1>
+    <p class="subline">Discover the studies and careers that match who you are — through short interviews, playful tests, and real-world matches.</p>
   </div>
 
-  <div class="sidebar-bottom">
-
-    <button class="side-item"
-      onclick="window.location.href='settings.html'">
-      <span>⚙️</span>
-      <span>Settings</span>
-    </button>
-
+  <div class="steps">
+    <div class="step active" id="step-dot-1">
+      <span class="step-num">01</span>
+      <span class="step-label">Create your account</span>
+    </div>
+    <div class="step" id="step-dot-2">
+      <span class="step-num">02</span>
+      <span class="step-label">Tell us about you</span>
+    </div>
+    <div class="step" id="step-dot-3">
+      <span class="step-num">03</span>
+      <span class="step-label">See your matches</span>
+    </div>
   </div>
-
 </div>
 
-  <!-- ───────────────── LEFT ───────────────── -->
+<!-- ── RIGHT ───────────────────────────────────── -->
+<div class="right">
 
-  <div class="left">
+  <!-- PANEL 1: Sign up -->
+  <div class="panel active" id="panel-1">
+    <p class="step-tag">Step 01 — Account</p>
+    <h2 class="panel-title">Create your<br>account.</h2>
+    <p class="panel-sub">Let's get you set up. It takes about two minutes.</p>
 
-    <div class="logo">
-      <span class="logo-cross">+</span>
-      Nova
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="inp-email" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="inp-pass" placeholder="At least 8 characters">
+    </div>
+    <div class="field">
+      <label>Confirm password</label>
+      <input type="password" id="inp-pass2" placeholder="Type it again">
     </div>
 
-    <div class="left-body">
+    <button class="btn-primary" onclick="goToDashboard()">Sign up &nbsp;→</button>
 
-      <p class="eyebrow">
-        A career compass for students
-      </p>
-
-      <h1 class="headline">
-        Find your<br>
-        <em>path.</em>
-      </h1>
-
-      <p class="subline">
-        Discover the studies and careers that match who you are —
-        through short interviews, playful tests, and real-world matches.
-      </p>
-
-    </div>
-
-    <div class="steps">
-
-      <div class="step active">
-        <span class="step-num">01</span>
-        <span class="step-label">Create your account</span>
-      </div>
-
-      <div class="step">
-        <span class="step-num">02</span>
-        <span class="step-label">Tell us about you</span>
-      </div>
-
-      <div class="step">
-        <span class="step-num">03</span>
-        <span class="step-label">See your matches</span>
-      </div>
-
-    </div>
-
+    <div class="divider"></div>
+    <p class="alt-link">Already have an account? <a href="#">Log in</a></p>
+    <p class="alt-link" style="margin-top:0.6rem">
+      <a href="/dashboard?name=Guest" style="color:var(--muted); font-weight:400">
+        Continue without logging in →
+      </a>
+    </p>
   </div>
 
-  <!-- ───────────────── RIGHT ───────────────── -->
+  <!-- PANEL 2: Chat interview -->
+  <div class="panel" id="panel-2">
+    <p class="step-tag">Step 02 — Interview</p>
+    <h2 class="panel-title">Tell us<br>about you.</h2>
 
-  <div class="right">
+    <div class="chat-scroll" id="chatBox"></div>
 
-    <div class="panel active">
-
-      <p class="step-tag">
-        Step 01 — Account
-      </p>
-
-      <h2 class="panel-title">
-        Create your<br>
-        account.
-      </h2>
-
-      <p class="panel-sub">
-        Let's get you set up. It takes about two minutes.
-      </p>
-
-      <div class="field">
-        <label>Email</label>
-        <input type="email" placeholder="you@example.com">
-      </div>
-
-      <div class="field">
-        <label>Password</label>
-        <input type="password" placeholder="At least 8 characters">
-      </div>
-
-      <div class="field">
-        <label>Confirm password</label>
-        <input type="password" placeholder="Type it again">
-      </div>
-
-      <button class="btn-primary">
-        Sign up →
+    <div class="chat-input-row">
+      <input type="text" id="userInput" placeholder="Type your answer…" autocomplete="off">
+      <button class="btn-icon" id="sendBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
       </button>
-
-      <div class="divider"></div>
-
-      <p class="alt-link">
-        Already have an account?
-        <a href="#">Log in</a>
-      </p>
-
     </div>
-
   </div>
 
-  <script>
-    document.querySelectorAll(".side-item").forEach(btn => {
+  <!-- PANEL 3: Done / redirect -->
+  <div class="panel" id="panel-3">
+    <p class="step-tag">Step 03 — Matches</p>
+    <h2 class="panel-title">You're all<br>set.</h2>
+    <p class="panel-sub">We've found your top career matches based on your answers.</p>
+    <a href="/wyniki" class="btn-primary btn-violet">See your matches &nbsp;→</a>
+  </div>
 
-      btn.addEventListener("click", () => {
+</div>
 
-        document.querySelectorAll(".side-item")
-          .forEach(b => b.classList.remove("active"));
-
-        btn.classList.add("active");
-
-      });
-
-    });
-  </script>
-<script>
-  let pomodoroVisible = false;
-  let pomodoroInterval = null;
-  let pomodoroTime = 25 * 60;
-  const pomodoroBtn = document.querySelectorAll('.side-item')[1]; // Pomodoro button
-  const widget = document.getElementById('pomodoro-widget');
-  const timerDisplay = document.getElementById('pomodoro-timer');
-  const startBtn = document.getElementById('pomodoro-start');
-  const resetBtn = document.getElementById('pomodoro-reset');
-
-  function updateTimerDisplay() {
-    const min = String(Math.floor(pomodoroTime / 60)).padStart(2, '0');
-    const sec = String(pomodoroTime % 60).padStart(2, '0');
-    timerDisplay.textContent = `${min}:${sec}`;
-  }
-
-  function startPomodoro() {
-    if (pomodoroInterval) return;
-    pomodoroInterval = setInterval(() => {
-      if (pomodoroTime > 0) {
-        pomodoroTime--;
-        updateTimerDisplay();
-      } else {
-        clearInterval(pomodoroInterval);
-        pomodoroInterval = null;
-      }
-    }, 1000);
-  }
-
-  function resetPomodoro() {
-    clearInterval(pomodoroInterval);
-    pomodoroInterval = null;
-    pomodoroTime = 25 * 60;
-    updateTimerDisplay();
-  }
-
-  pomodoroBtn.addEventListener('click', () => {
-    pomodoroVisible = !pomodoroVisible;
-    widget.style.display = pomodoroVisible ? 'block' : 'none';
-  });
-  startBtn.addEventListener('click', startPomodoro);
-  resetBtn.addEventListener('click', resetPomodoro);
-  updateTimerDisplay();
-</script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
 </html>

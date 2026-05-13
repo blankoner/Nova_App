@@ -9,10 +9,11 @@ from matcher import find_top_offers
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+app.secret_key = "zmien_na_losowy_string"  # np. os.urandom(24)
 
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
+# ── System prompt ─────────────────────────────────────────────────────────────
 INTERVIEW_SYSTEM_PROMPT = """You are a friendly career advisor helping young people figure out
 their future path. You conduct a short, warm conversation in English.
 
@@ -99,7 +100,8 @@ def clean_response_for_display(text):
     return "\n".join(cleaned).strip()
 
 
-# Flask part
+# ── Trasy Flask ───────────────────────────────────────────────────────────────
+
 @app.route("/")
 def index():
     session.clear()
@@ -112,20 +114,25 @@ def chat():
     if not user_message:
         return jsonify({"error": "Pusta wiadomość"}), 400
 
+    # Inicjalizuj historię rozmowy jeśli pusta
     if "history" not in session:
         session["history"] = [
             {"role": "system", "content": INTERVIEW_SYSTEM_PROMPT}
         ]
 
+    # Dodaj wiadomość użytkownika do historii
     history = session["history"]
     history.append({"role": "user", "content": user_message})
 
+    # Zapytaj Groq
     ai_response = chat_with_groq(history)
 
+    # Dodaj odpowiedź AI do historii
     history.append({"role": "assistant", "content": ai_response})
     session["history"] = history
     session.modified = True
 
+    # Sprawdź czy wywiad się zakończył
     profile = parse_profile_from_response(ai_response)
     if profile:
         session["profile"] = profile
@@ -141,6 +148,7 @@ def chat():
 
 @app.route("/start", methods=["POST"])
 def start():
+    """Inicjuje rozmowę — AI zadaje pierwsze pytanie."""
     session.clear()
     history = [{"role": "system", "content": INTERVIEW_SYSTEM_PROMPT}]
     history.append({"role": "user", "content": "Hi, I want to find a job or school that suits me."})
@@ -152,6 +160,11 @@ def start():
     session.modified = True
 
     return jsonify({"message": ai_response})
+
+
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
 
 
 @app.route("/wyniki")

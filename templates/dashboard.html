@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nova — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+<div class="app">
+
+  <!-- ── SIDEBAR ──────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="plus">+</span> Nova
+    </div>
+
+    <p class="nav-label">Menu</p>
+
+    <a class="nav-item active" id="nav-interview" onclick="switchView('interview')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      Career Interview
+    </a>
+
+    <a class="nav-item" id="nav-todo" onclick="switchView('todo')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+      </svg>
+      To-Do List
+    </a>
+
+    <a class="nav-item" id="nav-matches" onclick="switchView('matches')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      My Matches
+    </a>
+
+    <a class="nav-item" id="nav-pomodoro" onclick="switchView('pomodoro')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      Pomodoro
+    </a>
+
+    <a class="nav-item" id="nav-journal" onclick="switchView('journal')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      Journal
+    </a>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-user">
+      <div class="avatar" id="avatarEl">G</div>
+      <div class="user-info">
+        <div class="user-name" id="userName">Guest</div>
+        <div class="user-role">Explorer</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ─────────────────────────────────────────────── -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="topbarTitle">Career Interview</div>
+        <div class="topbar-sub" id="topbarSub">Answer a few questions to find your path</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- VIEW: Interview -->
+      <div class="view active" id="view-interview">
+        <div class="chat-card">
+          <div class="chat-header">
+            <div class="chat-dot"></div>
+            <div>
+              <div class="chat-header-text">Nova AI</div>
+              <div class="chat-header-sub">Career advisor · online</div>
+            </div>
+          </div>
+          <div class="chat-scroll" id="chatBox">
+            <!-- bubbles injected here -->
+          </div>
+          <div class="chat-footer">
+            <input type="text" id="userInput" placeholder="Type your answer…" autocomplete="off">
+            <button class="send-btn" id="sendBtn">
+              <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div id="resultBanner" style="display:none" class="result-banner">
+          <span>🎯 Interview complete! Your matches are ready.</span>
+          <a href="/wyniki">See matches →</a>
+        </div>
+      </div>
+
+      <!-- VIEW: To-Do -->
+      <div class="view" id="view-todo">
+        <div class="todo-wrap">
+          <div class="todo-header-row">
+            <h2 class="todo-heading">My Tasks</h2>
+            <span class="todo-count" id="todoCount">0 left</span>
+          </div>
+
+          <div class="todo-add-row">
+            <input type="text" id="todoInput" placeholder="Add a new task… and press Enter">
+            <button class="add-btn" onclick="addTodo()">+ Add</button>
+          </div>
+
+          <div class="filter-tabs">
+            <button class="filter-tab active" onclick="setFilter('all', this)">All</button>
+            <button class="filter-tab" onclick="setFilter('active', this)">Active</button>
+            <button class="filter-tab" onclick="setFilter('done', this)">Done</button>
+          </div>
+
+          <div class="todo-list" id="todoList"></div>
+        </div>
+      </div>
+
+      <!-- VIEW: Matches -->
+      <div class="view" id="view-matches">
+        <div class="matches-hint">
+          <span class="big-icon">🎯</span>
+          <h3>Your career matches</h3>
+          <p>Complete the Career Interview first so we can find roles and studies that fit your profile.</p>
+          <a href="/wyniki" class="btn-violet">View my matches →</a>
+        </div>
+      </div>
+
+      <!-- VIEW: Pomodoro -->
+      <div class="view" id="view-pomodoro">
+        <div class="pomo-wrap">
+
+          <div class="pomo-mode-tabs">
+            <button class="pomo-tab active" onclick="setMode('focus', this)">Focus</button>
+            <button class="pomo-tab" onclick="setMode('short', this)">Short Break</button>
+            <button class="pomo-tab" onclick="setMode('long', this)">Long Break</button>
+          </div>
+
+          <div class="pomo-card" id="pomoCard">
+            <span class="pomo-label" id="pomoLabel">Focus time</span>
+            <div class="pomo-time" id="pomoTime">25:00</div>
+
+            <div class="pomo-sessions" id="pomoDots"></div>
+
+            <div class="pomo-controls">
+              <button class="pomo-btn pomo-btn-icon" onclick="resetTimer()" title="Reset">↺</button>
+              <button class="pomo-btn pomo-btn-main" id="pomoStartBtn" onclick="toggleTimer()">START</button>
+              <button class="pomo-btn pomo-btn-icon" onclick="skipSession()" title="Skip">⏭</button>
+            </div>
+          </div>
+
+          <div class="pomo-settings">
+            <p class="pomo-settings-title">Timer settings</p>
+            <div class="pomo-setting-row">
+              <label>Focus (min)</label>
+              <div class="pomo-num-input">
+                <button onclick="adjustSetting('focus', -5)">−</button>
+                <span id="set-focus">25</span>
+                <button onclick="adjustSetting('focus', +5)">+</button>
+              </div>
+            </div>
+            <div class="pomo-setting-row">
+              <label>Short break (min)</label>
+              <div class="pomo-num-input">
+                <button onclick="adjustSetting('short', -1)">−</button>
+                <span id="set-short">5</span>
+                <button onclick="adjustSetting('short', +1)">+</button>
+              </div>
+            </div>
+            <div class="pomo-setting-row">
+              <label>Long break (min)</label>
+              <div class="pomo-num-input">
+                <button onclick="adjustSetting('long', -5)">−</button>
+                <span id="set-long">15</span>
+                <button onclick="adjustSetting('long', +5)">+</button>
+              </div>
+            </div>
+            <div class="pomo-setting-row">
+              <label>Sessions before long break</label>
+              <div class="pomo-num-input">
+                <button onclick="adjustSetting('sessions', -1)">−</button>
+                <span id="set-sessions">4</span>
+                <button onclick="adjustSetting('sessions', +1)">+</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- VIEW: Journal -->
+      <div class="view" id="view-journal">
+        <div class="journal-wrap">
+
+          <!-- Calendar -->
+          <div class="cal-card">
+            <div class="cal-nav">
+              <button class="cal-nav-btn" onclick="calShiftMonth(-1)">‹</button>
+              <span class="cal-month-label" id="calMonthLabel"></span>
+              <button class="cal-nav-btn" onclick="calShiftMonth(+1)">›</button>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+          </div>
+
+          <!-- Note panel -->
+          <div class="note-panel">
+            <div class="note-header">
+              <div>
+                <div class="note-date-label" id="noteDateLabel">Select a day</div>
+                <div class="note-date-sub" id="noteDateSub">Click any date on the calendar</div>
+              </div>
+              <button class="note-save-btn" id="noteSaveBtn" onclick="saveNote()">Save</button>
+            </div>
+            <div class="note-prompts" id="notePrompts">
+              <button class="note-prompt-chip" onclick="insertPrompt('What did I learn today? ')">💡 What I learned</button>
+              <button class="note-prompt-chip" onclick="insertPrompt('I struggled with... ')">🔥 Struggled with</button>
+              <button class="note-prompt-chip" onclick="insertPrompt('Tomorrow I want to... ')">🎯 Tomorrow's goal</button>
+              <button class="note-prompt-chip" onclick="insertPrompt('I&#39;m proud of... ')">⭐ Proud of</button>
+            </div>
+            <textarea class="note-textarea" id="noteText"
+              placeholder="Select a day to start writing…"></textarea>
+            <div class="note-footer">
+              <span class="note-char-count" id="noteCharCount">0 characters</span>
+              <button class="note-delete-btn" id="noteDeleteBtn" onclick="deleteNote()" style="display:none">
+                Delete note
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- chat.js must load before dashboard.js (which calls Nova.createChat) -->
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/todo.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pomodoro.js') }}"></script>
+<script src="{{ url_for('static', filename='js/journal.js') }}"></script>
+</body>
+</html>
