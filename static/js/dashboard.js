@@ -30,6 +30,12 @@ function switchView(name) {
   document.getElementById("nav-" + name).classList.add("active");
   document.getElementById("topbarTitle").textContent = viewMeta[name].title;
   document.getElementById("topbarSub").textContent   = viewMeta[name].sub;
+
+  // The Pomodoro overlay hides itself on the Pomodoro view and shows
+  // elsewhere (when running). Re-evaluate after every view change.
+  if (typeof window.refreshPomoOverlay === "function") {
+    window.refreshPomoOverlay();
+  }
 }
 
 window.switchView = switchView;
