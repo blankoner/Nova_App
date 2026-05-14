@@ -10,6 +10,8 @@ Each offer starts at 0 points. Points are added for:
   - proud_creation keywords matching skills               (+1 per match)
   - work_type preference matching job characteristics     (+2 if match)
   - success_vision matching job type/level hints          (+1 if match)
+  - skills built through games matching offer keywords    (up to +2 per hit,
+                                                           scaled by skill level)
 
 Final score is normalised to 0–100 %.
 """
@@ -51,6 +53,26 @@ LEVEL_FOR_SITUATION = {
     "part_time":    ["mid", "senior", "any"],
     "full_time":    ["mid", "senior", "any"],
     None:           ["entry", "any"],
+}
+
+# skill key (from skills.py) → keywords in offer title/skills that the skill suits.
+# Used by rule 7: a skill the user has demonstrably built up (via games) nudges
+# matching offers upward. The strength of the nudge scales with the skill level.
+SKILL_KEYWORDS = {
+    "logical_thinking":  ["analyst", "data", "engineering", "developer", "research",
+                          "scientist", "logic", "systems", "diagnostics"],
+    "strategy":          ["strategy", "planning", "management", "consulting",
+                          "operations", "coordinator", "lead", "director"],
+    "decision_making":   ["management", "lead", "supervisor", "operations",
+                          "executive", "coordinator", "project"],
+    "patience":          ["quality", "support", "care", "research", "analyst",
+                          "administration", "compliance", "auditor"],
+    "empathy":           ["care", "nursing", "counseling", "social", "teacher",
+                          "education", "support", "patient", "community"],
+    "emotional_support": ["counseling", "support", "care", "therapy", "social",
+                          "wellbeing", "mentor", "coach", "advisor"],
+    "assertiveness":     ["sales", "negotiation", "management", "lead", "business",
+                          "account", "recruiter", "representative", "advocate"],
 }
 
 
@@ -113,6 +135,25 @@ def score_offer(offer: dict, profile: dict) -> int:
     primary = vision.get("primary", "")
     if primary in SUCCESS_KEYWORDS:
         score += _kw_hits(SUCCESS_KEYWORDS[primary], haystack)
+
+    # 7. Skills built up through games.
+    # `profile["skills"]` is { skill_key: {"level": 0-100, "samples": int} }.
+    # A skill contributes only in proportion to its level: at level 0 it adds
+    # nothing (so users who never played games score exactly as before), at
+    # level 100 each keyword hit is worth a full +2.
+    skills = profile.get("skills", {})
+    if skills:
+        for skill_key, entry in skills.items():
+            level = entry.get("level", 0) if isinstance(entry, dict) else 0
+            if level <= 0:
+                continue
+            keywords = SKILL_KEYWORDS.get(skill_key)
+            if not keywords:
+                continue
+            hits = _kw_hits(keywords, haystack)
+            if hits:
+                # level/100 scales 0..1; *2 makes a maxed skill worth +2 per hit
+                score += (level / 100.0) * hits * 2
 
     return score
 

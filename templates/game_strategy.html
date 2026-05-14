@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Strategy — Nova</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/game-strategy.css') }}">
+</head>
+<body>
+<div class="game-wrap">
+
+  <!-- Header -->
+  <div class="game-header">
+    <a href="/dashboard?name={{ name }}" class="btn">← Dashboard</a>
+    <div class="game-title">
+      Strategy
+      <span class="sub">Conquer the map — every move says something about how you think</span>
+    </div>
+    <button class="btn ms-auto" id="howToToggle">How to play</button>
+    <a href="/skills" class="btn">My skills →</a>
+  </div>
+
+  <!-- How-to (collapsible) -->
+  <div class="howto-panel" id="howToPanel">
+    <div class="howto-inner">
+      <h3>How to play</h3>
+      <ul>
+        <li>You (violet) face the AI (red). Neutral grey territories are up for grabs.</li>
+        <li><strong>Attack phase:</strong> click one of your territories with 2+ armies, then click an adjacent enemy or neutral territory to attack it.</li>
+        <li>Combat is dice-based: each side rolls one die per army, higher total wins. A territory must always leave 1 army behind.</li>
+        <li>When you run out of moves (or want to stop), end your attack phase.</li>
+        <li><strong>Reinforce phase:</strong> click your territories to place {{ "3" }} fresh armies, then continue.</li>
+        <li>The AI then takes its turn. Wipe out all enemy territories to win.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Main layout -->
+  <div class="game-layout">
+
+    <!-- Board -->
+    <div class="board-card">
+      <div class="game-board" id="gameBoard"><!-- territories injected by JS --></div>
+    </div>
+
+    <!-- Side panel -->
+    <div class="side-panel">
+
+      <div class="panel-card">
+        <h2>Status</h2>
+        <div class="status-grid">
+          <div class="status-item">
+            <span class="status-label">Round</span>
+            <span class="status-value" id="statRound">1</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">&nbsp;</span>
+            <span class="status-value">&nbsp;</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Your land</span>
+            <span class="status-value player" id="statPlayerTerr">3</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">AI land</span>
+            <span class="status-value ai" id="statAiTerr">3</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Your armies</span>
+            <span class="status-value player" id="statPlayerArmies">10</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">AI armies</span>
+            <span class="status-value ai" id="statAiArmies">10</span>
+          </div>
+          <div class="status-phase" id="statPhase">Your attack phase</div>
+        </div>
+      </div>
+
+      <div class="panel-card controls-card">
+        <h2>Your turn</h2>
+        <button class="btn btn-violet" id="endTurnBtn">End attack phase →</button>
+      </div>
+
+      <div class="panel-card">
+        <h2>Battle log</h2>
+        <div class="game-log" id="gameLog"><!-- log lines injected by JS --></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Game-over overlay -->
+<div class="game-over-overlay" id="gameOverOverlay">
+  <div class="game-over-card">
+    <h2 id="gameOverTitle">Victory!</h2>
+    <p class="game-over-sub" id="gameOverSub"></p>
+    <div id="gameOverSkills"><!-- result bars injected by JS --></div>
+    <p class="save-note" id="saveNote">Saving your results…</p>
+    <div class="game-over-actions">
+      <button class="btn btn-violet" id="newGameBtn">Play again</button>
+      <a href="/skills" class="btn">View skills</a>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/game-strategy.js') }}"></script>
+</body>
+</html>

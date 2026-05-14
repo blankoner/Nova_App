@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, session, jsonify
 from dotenv import load_dotenv
 from groq import Groq
 from matcher import find_top_offers
+import skills as skills_mod
 
 load_dotenv()
 
@@ -144,6 +145,13 @@ def chat():
     profile = parse_profile_from_response(ai_response)
     if profile:
         session["profile"] = profile
+        # Persist the interview into the user's on-disk profile, alongside
+        # any skills they've already built up through games.
+        name = session.get("user_name", "Guest")
+        user_profile = skills_mod.load_profile(name)
+        user_profile["interview"] = profile
+        skills_mod.save_profile(user_profile)
+
         display_text = clean_response_for_display(ai_response)
         return jsonify({
             "message": display_text or "Thank you! I have everything I need.",
@@ -172,16 +180,101 @@ def start():
 
 @app.route("/dashboard")
 def dashboard():
+    # The signup / "continue as guest" flow passes the name as ?name=...
+    # Persist it in the session so later API calls know whose profile to load.
+    name = request.args.get("name", "Guest").strip() or "Guest"
+    session["user_name"] = name
+    # Make sure a profile file exists from the first visit, so the skills page
+    # and game endpoints always have something to read.
+    profile = skills_mod.load_profile(name)
+    skills_mod.save_profile(profile)
     return render_template("dashboard.html")
 
 
 @app.route("/wyniki")
 def wyniki():
-    profile = session.get("profile")
-    if not profile:
+    # Prefer the persistent on-disk profile (interview + skills from games).
+    # Fall back to the session-only profile if the user hasn't been saved yet.
+    name = session.get("user_name", "Guest")
+    user_profile = skills_mod.load_profile(name)
+    interview = user_profile.get("interview") or session.get("profile")
+
+    if not interview:
         return render_template("index.html")
-    offers = find_top_offers(profile, top_n=5)
-    return render_template("wyniki.html", profile=profile, offers=offers)
+
+    # Build the dict the matcher expects: the interview fields, plus the
+    # skill levels folded in under a "skills" key (rule 7 in matcher.py).
+    match_input = dict(interview)
+    match_input["skills"] = user_profile.get("skills", {})
+
+    offers = find_top_offers(match_input, top_n=5)
+    return render_template("wyniki.html", profile=interview, offers=offers)
+
+
+@app.route("/skills")
+def skills_page():
+    """The skills overview page — shows each skill and its current level."""
+    name = session.get("user_name", "Guest")
+    user_profile = skills_mod.load_profile(name)
+    skill_list = skills_mod.skills_for_display(user_profile)
+    has_interview = user_profile.get("interview") is not None
+    games_played = len(user_profile.get("game_history", []))
+    return render_template(
+        "skills.html",
+        skills=skill_list,
+        name=name,
+        has_interview=has_interview,
+        games_played=games_played,
+    )
+
+
+@app.route("/game/strategy")
+def game_strategy():
+    """The Strategy game — a Risk-style conquest game played in the browser."""
+    name = session.get("user_name", "Guest")
+    # Ensure a profile exists so the game's result POST has somewhere to land.
+    profile = skills_mod.load_profile(name)
+    skills_mod.save_profile(profile)
+    return render_template("game_strategy.html", name=name)
+
+
+@app.route("/api/profile")
+def api_profile():
+    """Return the current user's full persistent profile as JSON."""
+    name = session.get("user_name", "Guest")
+    return jsonify(skills_mod.load_profile(name))
+
+
+@app.route("/api/game-result", methods=["POST"])
+def api_game_result():
+    """
+    Receive a game's result, fold it into the user's skills, and persist.
+
+    Expected JSON body:
+      { "game": "strategy", "result": { "strategy": 72, "patience": 40, ... } }
+
+    `result` values are scores 0–100 per skill key. Unknown keys are ignored
+    and values are clamped server-side (see skills.apply_game_result).
+    """
+    data = request.get_json(silent=True) or {}
+    game_id = str(data.get("game", "")).strip()
+    result = data.get("result", {})
+
+    if not game_id:
+        return jsonify({"error": "Missing 'game' field"}), 400
+    if not isinstance(result, dict):
+        return jsonify({"error": "'result' must be an object"}), 400
+
+    name = session.get("user_name", "Guest")
+    user_profile = skills_mod.load_profile(name)
+    skills_mod.apply_game_result(user_profile, game_id, result)
+    skills_mod.save_profile(user_profile)
+
+    # Return the updated skills so the client can show progress immediately.
+    return jsonify({
+        "ok": True,
+        "skills": skills_mod.skills_for_display(user_profile),
+    })
 
 
 if __name__ == "__main__":

@@ -1,0 +1,69 @@
+/* skills.css — styles for the skills overview page */
+
+body {
+  background: #f0f4f8;
+  font-family: 'Poppins', sans-serif;
+}
+h1, h2, h3, h4, h5, h6 { font-family: 'Outfit', sans-serif; }
+
+/* Reuse the violet button look from the rest of the app */
+.btn-violet {
+  background: #6B21FF;
+  color: #fff;
+  border: none;
+}
+.btn-violet:hover {
+  background: #4A0FCC;
+  color: #fff;
+}
+
+.skill-card {
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.skill-card:hover {
+  transform: translateY(-2px);
+}
+
+.skill-name {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #0D0D0D;
+}
+
+.skill-level {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.skill-level.high { color: #16A34A; }
+.skill-level.mid  { color: #6B21FF; }
+.skill-level.low  { color: #9090A0; }
+
+.skill-desc {
+  line-height: 1.45;
+}
+
+/* Progress bar */
+.skill-bar-track {
+  width: 100%;
+  height: 9px;
+  background: #EBEBF0;
+  border-radius: 99px;
+  overflow: hidden;
+}
+.skill-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  /* animate width changes if the page updates the bar live */
+  transition: width 0.5s ease;
+  min-width: 2px;
+}
+.skill-bar-fill.high { background: #16A34A; }
+.skill-bar-fill.mid  { background: #6B21FF; }
+.skill-bar-fill.low  { background: #C4C4D0; }
+
+.skill-samples {
+  font-size: 0.72rem;
+  margin-top: 0.4rem;
+}
