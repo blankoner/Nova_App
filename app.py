@@ -11,7 +11,50 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = "zmien_na_losowy_string"  # np. os.urandom(24)
 
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+# When GROQ_API_KEY is not set we run a scripted mock conversation so the
+# frontend flow can be exercised without hitting the real LLM.
+MOCK_MODE = not os.environ.get("GROQ_API_KEY")
+
+if MOCK_MODE:
+    print("[MOCK MODE] GROQ_API_KEY not set — using scripted mock responses.")
+    client = None
+else:
+    client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
+
+MOCK_QUESTIONS = [
+    "Hey there! I'm so glad you're here. Let's get to know each other — first things first, how old are you?",
+    "Nice to meet you! What's your current situation — are you still in school, at university, working, or none of those?",
+    "Got it. Now tell me — what are some of your hobbies or main interests? You can share up to 3.",
+    "Cool. Do you already have an idea about which field you'd like to work in? It's totally fine if you're not sure yet!",
+    "Let's picture 5 years from now. What does success look like to you — money, impact, creativity, stability, freedom, or something else?",
+    "Do you usually prefer working alone, with others, or a mix of both?",
+    "Have you ever built or created something you're proud of? If yes, what was it briefly?",
+    "What are your favorite school subjects? (Up to 2)",
+    "Last one! Do you prefer hands-on work like building and doing, or more conceptual work like thinking and planning — or a mix?",
+]
+
+MOCK_PROFILE = {
+    "age": 17,
+    "situation": {"status": "student", "detail": "high_school"},
+    "job_change": None,
+    "interests": ["music", "coding", "design"],
+    "field_idea": {"clarity": "vague", "field": "something creative with technology"},
+    "success_vision": {"primary": "creativity", "secondary": "freedom", "custom": None},
+    "work_style": "mixed",
+    "proud_creation": {"has_created": True, "description": "built a small personal website"},
+    "favorite_subjects": ["math", "art"],
+    "work_type": "hands-on",
+}
+
+
+def mock_chat_response(messages):
+    """Return the next scripted question, or the final wrap-up + profile JSON."""
+    user_count = sum(1 for m in messages if m.get("role") == "user")
+    if 1 <= user_count <= len(MOCK_QUESTIONS):
+        return MOCK_QUESTIONS[user_count - 1]
+    closing = "Thanks for sharing all of that — you've given me a great picture of who you are."
+    return f"{closing}\n{json.dumps(MOCK_PROFILE)}"
 
 # ── System prompt ─────────────────────────────────────────────────────────────
 INTERVIEW_SYSTEM_PROMPT = """You are a friendly career advisor helping young people figure out
@@ -58,7 +101,9 @@ Allowed values:
 
 
 def chat_with_groq(messages):
-    """Sends messages to Groq and returns the response."""
+    """Sends messages to Groq and returns the response (or a scripted mock)."""
+    if MOCK_MODE:
+        return mock_chat_response(messages)
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=messages,
