@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Nova — Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 </head>
 <body>
@@ -14,7 +15,10 @@
   <!-- ── SIDEBAR ──────────────────────────────────────────── -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <span class="plus">+</span> Nova
+      <svg class="logo-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+        <path d="M12 0 L13.6 9.4 L23 11 L13.6 12.6 L12 22 L10.4 12.6 L1 11 L10.4 9.4 Z"/>
+      </svg>
+      Nova
     </div>
 
     <p class="nav-label">Menu</p>
@@ -80,26 +84,49 @@
 
       <!-- VIEW: Interview -->
       <div class="view active" id="view-interview">
-        <div class="chat-card">
-          <div class="chat-header">
-            <div class="chat-dot"></div>
-            <div>
-              <div class="chat-header-text">Nova AI</div>
-              <div class="chat-header-sub">Career advisor · online</div>
+        <div class="interview-layout">
+          <div class="chat-card">
+            <div class="chat-header">
+              <div class="chat-dot"></div>
+              <div>
+                <div class="chat-header-text">Nova AI</div>
+                <div class="chat-header-sub">Career advisor · online</div>
+              </div>
+            </div>
+            <div class="chat-scroll" id="chatBox">
+              <!-- bubbles injected here -->
+            </div>
+            <div class="chat-footer">
+              <input type="text" id="userInput" placeholder="Type your answer…" autocomplete="off">
+              <button class="send-btn" id="sendBtn">
+                <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+              </button>
             </div>
           </div>
-          <div class="chat-scroll" id="chatBox">
-            <!-- bubbles injected here -->
-          </div>
-          <div class="chat-footer">
-            <input type="text" id="userInput" placeholder="Type your answer…" autocomplete="off">
-            <button class="send-btn" id="sendBtn">
-              <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
-            </button>
-          </div>
+
+          <aside class="topics-card">
+            <p class="topics-eyebrow">What we'll talk about</p>
+            <h3 class="topics-title">Nine quick<br><em>signals.</em></h3>
+            <p class="topics-sub">One question at a time. Skip nothing — every answer sharpens your matches.</p>
+            <ol class="topics-list">
+              <li><span>01</span> Age</li>
+              <li><span>02</span> Current situation</li>
+              <li><span>03</span> Interests & hobbies</li>
+              <li><span>04</span> Field ideas</li>
+              <li><span>05</span> Vision of success</li>
+              <li><span>06</span> Work style</li>
+              <li><span>07</span> Something you built</li>
+              <li><span>08</span> Favorite subjects</li>
+              <li><span>09</span> Hands-on or conceptual</li>
+            </ol>
+          </aside>
         </div>
+
         <div id="resultBanner" style="display:none" class="result-banner">
-          <span>🎯 Interview complete! Your matches are ready.</span>
+          <div class="result-banner-body">
+            <span class="result-banner-eyebrow">Interview complete</span>
+            <span class="result-banner-title">Your matches are ready.</span>
+          </div>
           <a href="/wyniki">See matches →</a>
         </div>
       </div>
@@ -130,9 +157,37 @@
       <!-- VIEW: Matches -->
       <div class="view" id="view-matches">
         <div class="matches-hint">
-          <span class="big-icon">🎯</span>
-          <h3>Your career matches</h3>
-          <p>Complete the Career Interview first so we can find roles and studies that fit your profile.</p>
+          <p class="hint-eyebrow">Step 03 — Matches</p>
+          <h3 class="hint-title">Your matches<br><em>will appear here.</em></h3>
+          <p class="hint-body">Complete the Career Interview first — Nova uses your answers to rank real roles and studies. Here's a peek at the layout you'll see.</p>
+
+          <div class="ghost-cards" aria-hidden="true">
+            <div class="ghost-card">
+              <div class="ghost-pct">82<span>%</span></div>
+              <div class="ghost-body">
+                <div class="ghost-line w-70"></div>
+                <div class="ghost-line w-40 muted"></div>
+              </div>
+              <div class="ghost-tag">match</div>
+            </div>
+            <div class="ghost-card mid">
+              <div class="ghost-pct">67<span>%</span></div>
+              <div class="ghost-body">
+                <div class="ghost-line w-60"></div>
+                <div class="ghost-line w-45 muted"></div>
+              </div>
+              <div class="ghost-tag">match</div>
+            </div>
+            <div class="ghost-card low">
+              <div class="ghost-pct">51<span>%</span></div>
+              <div class="ghost-body">
+                <div class="ghost-line w-55"></div>
+                <div class="ghost-line w-35 muted"></div>
+              </div>
+              <div class="ghost-tag">match</div>
+            </div>
+          </div>
+
           <a href="/wyniki" class="btn-violet">View my matches →</a>
         </div>
       </div>

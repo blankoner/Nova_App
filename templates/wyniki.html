@@ -3,106 +3,126 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Your Top Matches</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>Nova — Your Matches</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/wyniki.css') }}">
 </head>
 <body>
-<div class="container py-5" style="max-width:780px">
 
-  <div class="d-flex align-items-center gap-3 mb-4">
-    <a href="/" class="btn btn-outline-secondary btn-sm">← Start over</a>
-    <h1 class="h4 fw-bold mb-0">Your Top Job Matches</h1>
-  </div>
+<!-- ── TOPBAR ─────────────────────────────────────────────── -->
+<header class="topbar">
+  <a href="/dashboard" class="back-link" aria-label="Back to dashboard">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 7 H2"/><path d="M6 3 L2 7 L6 11"/>
+    </svg>
+    <span>Back</span>
+  </a>
 
-  <!-- Profile summary -->
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-body py-3">
-      <p class="text-muted small mb-2">Based on your profile:</p>
-      <div class="d-flex flex-wrap gap-2">
+  <a href="/" class="brand-mark">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 0 L13.6 9.4 L23 11 L13.6 12.6 L12 22 L10.4 12.6 L1 11 L10.4 9.4 Z"/>
+    </svg>
+    Nova
+  </a>
+
+  <a href="/" class="restart-link">Start over →</a>
+</header>
+
+<main class="page">
+
+  <!-- ── HERO ─────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-text">
+      <p class="eyebrow">Step 03 — Matches</p>
+      <h1 class="hero-title">Your top<br><em>matches.</em></h1>
+      <p class="hero-sub">Roles ranked by how well they fit what you told us. Click any match to view the full posting.</p>
+    </div>
+
+    <aside class="profile-recap">
+      <p class="recap-label">We heard</p>
+      <div class="recap-chips">
         {% for interest in profile.get("interests", []) %}
-          <span class="badge bg-primary bg-opacity-10 text-primary fw-normal px-3 py-2">{{ interest }}</span>
+          <span class="chip chip-violet">{{ interest }}</span>
         {% endfor %}
         {% if profile.get("field_idea", {}).get("field") %}
-          <span class="badge bg-success bg-opacity-10 text-success fw-normal px-3 py-2">
-            {{ profile.field_idea.field }}
-          </span>
+          <span class="chip chip-mist">{{ profile.field_idea.field }}</span>
         {% endif %}
         {% for subj in profile.get("favorite_subjects", []) %}
-          <span class="badge bg-warning bg-opacity-10 text-warning-emphasis fw-normal px-3 py-2">{{ subj }}</span>
+          <span class="chip">{{ subj }}</span>
         {% endfor %}
-        <span class="badge bg-secondary bg-opacity-10 text-secondary fw-normal px-3 py-2">
-          {{ profile.get("work_type", "—") }}
-        </span>
-        <span class="badge bg-secondary bg-opacity-10 text-secondary fw-normal px-3 py-2">
-          {{ profile.get("success_vision", {}).get("primary", "—") }}
-        </span>
+        <span class="chip chip-outline">{{ profile.get("work_type", "—") }}</span>
+        <span class="chip chip-outline">{{ profile.get("success_vision", {}).get("primary", "—") }}</span>
       </div>
-    </div>
-  </div>
+    </aside>
+  </section>
 
-  <!-- Offers -->
+  <!-- ── RESULTS ──────────────────────────────────────────── -->
   {% if offers %}
-    <div class="row g-3">
+    <div class="results-meta">
+      <span class="results-count"><strong>{{ offers|length }}</strong> matches found</span>
+      <span class="results-source">Sorted by fit</span>
+    </div>
+
+    <ol class="matches">
       {% for offer in offers %}
         {% set pct = offer.match_pct %}
-        {% if pct >= 80 %}{% set pct_class = "" %}
-        {% elif pct >= 50 %}{% set pct_class = "mid" %}
-        {% else %}{% set pct_class = "low" %}{% endif %}
+        {% if pct >= 80 %}{% set tier = "high" %}
+        {% elif pct >= 50 %}{% set tier = "mid" %}
+        {% else %}{% set tier = "low" %}{% endif %}
 
-        <div class="col-12">
-          <div class="card border-0 shadow-sm">
-            <div class="card-body d-flex gap-3 align-items-start py-3">
+        <li class="match-card tier-{{ tier }}">
+          <div class="match-rank">
+            <span class="rank-num">{{ "%02d"|format(loop.index) }}</span>
+          </div>
 
-              <div class="match-bar-wrap">
-                <div class="match-pct {{ pct_class }}">{{ pct }}%</div>
-                <div class="text-muted" style="font-size:0.68rem">match</div>
-              </div>
+          <div class="match-score">
+            <div class="score-num">{{ pct }}<span>%</span></div>
+            <div class="score-label">match</div>
+          </div>
 
-              <div class="flex-grow-1">
-                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                  <h5 class="card-title mb-0 fw-semibold" style="font-size:1rem">
-                    {% if offer.url %}
-                      <a href="{{ offer.url }}" target="_blank" class="text-decoration-none text-dark">{{ offer.title }}</a>
-                    {% else %}
-                      {{ offer.title }}
-                    {% endif %}
-                  </h5>
-                  {% if offer.level %}
-                    <span class="badge bg-light text-dark border badge-level">{{ offer.level }}</span>
-                  {% endif %}
-                  {% if offer.job_type %}
-                    <span class="badge bg-light text-dark border badge-level">{{ offer.job_type }}</span>
-                  {% endif %}
-                </div>
-                <p class="text-muted small mb-0">
-                  <strong>{{ offer.company or "—" }}</strong>
-                  {% if offer.location %}&nbsp;·&nbsp;{{ offer.location }}{% endif %}
-                </p>
-              </div>
-
+          <div class="match-body">
+            <h2 class="match-title">
               {% if offer.url %}
-                <a href="{{ offer.url }}" target="_blank" class="btn btn-outline-primary btn-sm flex-shrink-0 align-self-center">
-                  View
-                </a>
+                <a href="{{ offer.url }}" target="_blank" rel="noopener">{{ offer.title }}</a>
+              {% else %}
+                {{ offer.title }}
               {% endif %}
+            </h2>
+            <p class="match-org">
+              <strong>{{ offer.company or "—" }}</strong>{% if offer.location %} <span class="match-dot">·</span> {{ offer.location }}{% endif %}
+            </p>
+            <div class="match-tags">
+              {% if offer.level %}<span class="tag">{{ offer.level }}</span>{% endif %}
+              {% if offer.job_type %}<span class="tag">{{ offer.job_type }}</span>{% endif %}
             </div>
           </div>
-        </div>
+
+          {% if offer.url %}
+            <a href="{{ offer.url }}" target="_blank" rel="noopener" class="match-cta">
+              View
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 7 H12"/><path d="M8 3 L12 7 L8 11"/>
+              </svg>
+            </a>
+          {% endif %}
+        </li>
       {% endfor %}
-    </div>
+    </ol>
   {% else %}
-    <div class="alert alert-warning">
-      No matches found. Make sure <code>jobs.db</code> exists —
-      run <code>python import_data.py</code> first.
+    <div class="empty">
+      <p class="empty-eyebrow">No matches yet</p>
+      <h3 class="empty-title">The job database<br><em>isn't loaded.</em></h3>
+      <p class="empty-body">
+        Make sure <code>jobs.db</code> exists. Run <code>python import_data.py</code>
+        from the project root to seed it, then refresh this page.
+      </p>
     </div>
   {% endif %}
 
-  <p class="text-muted text-center mt-4 small">
-    Results from LinkedIn job postings (2024) · Kaggle dataset by asaniczka
-  </p>
-</div>
+  <p class="footnote">Data: LinkedIn job postings (2024) · Kaggle dataset by asaniczka</p>
+</main>
+
 </body>
 </html>
