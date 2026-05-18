@@ -36,3 +36,6 @@ CLAUDE.md
 nova-design-spec.md
 
 cookies.txt
+
+# Claude Code internal data
+.claude/
