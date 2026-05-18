@@ -78,6 +78,8 @@ SKILL_KEYWORDS = {
 
 def _tokens(text: str) -> list[str]:
     """Lowercase word tokens from any string."""
+    if not text:
+        return []
     return re.findall(r"[a-z]+", text.lower())
 
 
