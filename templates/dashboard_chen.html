@@ -125,7 +125,7 @@
         <div id="resultBanner" style="display:none" class="result-banner">
           <div class="result-banner-body">
             <span class="result-banner-eyebrow">Interview complete</span>
-            <span class="result-banner-title">Your matches are ready.</span>
+            <span id="resultBannerText" class="result-banner-title">Your matches are ready.</span>
           </div>
           <a href="/wyniki">See matches →</a>
         </div>
@@ -141,6 +141,7 @@
 
           <div class="todo-add-row">
             <input type="text" id="todoInput" placeholder="Add a new task… and press Enter">
+            <input type="datetime-local" id="todoDueInput" title="Due date (optional)">
             <button class="add-btn" onclick="addTodo()">+ Add</button>
           </div>
 
@@ -300,8 +301,20 @@
   </div><!-- /main -->
 </div><!-- /app -->
 
+<div class="pomo-overlay" id="pomoOverlay" role="button" tabindex="0"
+     aria-label="Pomodoro timer — click to open" title="Open Pomodoro">
+  <div class="pomo-overlay-ring" id="pomoOverlayRing"></div>
+  <div class="pomo-overlay-body">
+    <div class="pomo-overlay-time" id="pomoOverlayTime">25:00</div>
+    <div class="pomo-overlay-label" id="pomoOverlayLabel">Focus</div>
+  </div>
+  <button class="pomo-overlay-toggle" id="pomoOverlayToggle"
+          aria-label="Pause or resume timer" title="Pause / resume">⏸</button>
+</div>
+
 <!-- chat.js must load before dashboard.js (which calls Nova.createChat) -->
 <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+<script src="{{ url_for('static', filename='js/apps-store.js') }}"></script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 <script src="{{ url_for('static', filename='js/todo.js') }}"></script>
 <script src="{{ url_for('static', filename='js/pomodoro.js') }}"></script>
