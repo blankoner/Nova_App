@@ -18,34 +18,91 @@
     long:  { label: 'Long break 🌿', cardClass: 'break',       settingKey: 'long'  },
   };
 
+  // Short label for the compact overlay (no emoji, fits the pill)
+  const overlayLabel = { focus: 'Focus', short: 'Short break', long: 'Long break' };
+
   function pomoDisplay(secs) {
     const m = String(Math.floor(secs / 60)).padStart(2, '0');
     const s = String(secs % 60).padStart(2, '0');
     return `${m}:${s}`;
   }
 
+  // Is the user currently looking at the full Pomodoro view?
+  function onPomodoroView() {
+    const view = document.getElementById('view-pomodoro');
+    return !!view && view.classList.contains('active');
+  }
+
+  // Decide whether the floating overlay should be visible right now.
+  // Shown only when the timer is running AND we're not on the Pomodoro view
+  // (on that view the full widget already shows everything).
+  function refreshOverlay() {
+    const overlay = document.getElementById('pomoOverlay');
+    if (!overlay) return;
+    const shouldShow = pomo.running && !onPomodoroView();
+    overlay.classList.toggle('visible', shouldShow);
+  }
+
+  function updateOverlayUI() {
+    const overlay = document.getElementById('pomoOverlay');
+    if (!overlay) return;
+
+    const timeEl  = document.getElementById('pomoOverlayTime');
+    const labelEl = document.getElementById('pomoOverlayLabel');
+    const ringEl  = document.getElementById('pomoOverlayRing');
+    const toggleEl = document.getElementById('pomoOverlayToggle');
+
+    if (timeEl)  timeEl.textContent  = pomoDisplay(pomo.secondsLeft);
+    if (labelEl) labelEl.textContent = overlayLabel[pomo.mode] || 'Focus';
+
+    // Conic-gradient progress ring: fraction of time elapsed
+    if (ringEl) {
+      const elapsed = 1 - (pomo.secondsLeft / pomo.totalSeconds);
+      ringEl.style.setProperty('--ring', (elapsed * 360) + 'deg');
+    }
+
+    // Colour-code by mode (matches the full card accents)
+    overlay.classList.toggle('mode-short', pomo.mode === 'short');
+    overlay.classList.toggle('mode-long',  pomo.mode === 'long');
+
+    if (toggleEl) toggleEl.textContent = pomo.running ? '⏸' : '▶';
+  }
+
   function updatePomoUI() {
-    document.getElementById('pomoTime').textContent = pomoDisplay(pomo.secondsLeft);
+    // ── Full widget (only present/visible on the Pomodoro view) ──
+    const timeEl = document.getElementById('pomoTime');
+    if (timeEl) timeEl.textContent = pomoDisplay(pomo.secondsLeft);
     document.title = pomo.running ? `${pomoDisplay(pomo.secondsLeft)} — Nova` : 'Nova — Dashboard';
 
     const card = document.getElementById('pomoCard');
-    const progress = pomo.secondsLeft / pomo.totalSeconds;
-    card.style.setProperty('--progress', progress);
-    card.className = 'pomo-card ' + (modeConfig[pomo.mode].cardClass || '');
+    if (card) {
+      const progress = pomo.secondsLeft / pomo.totalSeconds;
+      card.style.setProperty('--progress', progress);
+      card.className = 'pomo-card ' + (modeConfig[pomo.mode].cardClass || '');
+    }
 
-    document.getElementById('pomoLabel').textContent = modeConfig[pomo.mode].label;
+    const labelEl = document.getElementById('pomoLabel');
+    if (labelEl) labelEl.textContent = modeConfig[pomo.mode].label;
 
     const btn = document.getElementById('pomoStartBtn');
-    btn.textContent = pomo.running ? 'PAUSE' : 'START';
-    btn.className = 'pomo-btn pomo-btn-main' + (pomo.running ? ' running' : '');
+    if (btn) {
+      btn.textContent = pomo.running ? 'PAUSE' : 'START';
+      btn.className = 'pomo-btn pomo-btn-main' + (pomo.running ? ' running' : '');
+    }
 
     const dotsEl = document.getElementById('pomoDots');
-    dotsEl.innerHTML = '';
-    for (let i = 0; i < pomo.settings.sessions; i++) {
-      const d = document.createElement('div');
-      d.className = 'pomo-dot' + (i < pomo.completedSessions ? ' done' : '');
-      dotsEl.appendChild(d);
+    if (dotsEl) {
+      dotsEl.innerHTML = '';
+      for (let i = 0; i < pomo.settings.sessions; i++) {
+        const d = document.createElement('div');
+        d.className = 'pomo-dot' + (i < pomo.completedSessions ? ' done' : '');
+        dotsEl.appendChild(d);
+      }
     }
+
+    // ── Floating overlay ──
+    updateOverlayUI();
+    refreshOverlay();
   }
 
   function setMode(mode, btnEl) {
@@ -142,6 +199,19 @@
       updatePomoUI();
     }
     if (key === 'sessions') updatePomoUI();
+
+    // Persist the timer settings so they survive a reload.
+    if (window.Nova && window.Nova.appsStore) {
+      window.Nova.appsStore.save({ pomodoro: { settings: pomo.settings } });
+    }
+  }
+
+  // Reflect the current settings into the on-screen number fields.
+  function renderSettings() {
+    ['focus', 'short', 'long', 'sessions'].forEach(key => {
+      const el = document.getElementById('set-' + key);
+      if (el) el.textContent = pomo.settings[key];
+    });
   }
 
   // Expose to inline onclick
@@ -151,5 +221,57 @@
   window.skipSession = skipSession;
   window.adjustSetting = adjustSetting;
 
-  document.addEventListener("DOMContentLoaded", updatePomoUI);
+  // Exposed so dashboard.js can re-evaluate overlay visibility on view change
+  window.refreshPomoOverlay = refreshOverlay;
+
+  document.addEventListener("DOMContentLoaded", () => {
+    updatePomoUI();
+
+    const overlay = document.getElementById('pomoOverlay');
+    const overlayToggle = document.getElementById('pomoOverlayToggle');
+
+    if (overlay) {
+      // Click on the overlay body → jump to the full Pomodoro view.
+      // (Clicks on the pause button are handled separately and stop-propagated.)
+      overlay.addEventListener('click', () => {
+        if (typeof window.switchView === 'function') {
+          window.switchView('pomodoro');
+        }
+      });
+      // Keyboard accessibility: Enter/Space also opens the view
+      overlay.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          if (typeof window.switchView === 'function') {
+            window.switchView('pomodoro');
+          }
+        }
+      });
+    }
+
+    if (overlayToggle) {
+      overlayToggle.addEventListener('click', (e) => {
+        e.stopPropagation(); // don't trigger the overlay's "open view" click
+        toggleTimer();
+      });
+    }
+
+    // Load saved timer settings from the backend. We only apply them while the
+    // timer isn't running, so we don't yank time out from under an active
+    // session. Then re-sync the current mode's duration.
+    if (window.Nova && window.Nova.appsStore) {
+      window.Nova.appsStore.load().then((state) => {
+        const saved = state.pomodoro && state.pomodoro.settings;
+        if (saved && !pomo.running) {
+          ['focus', 'short', 'long', 'sessions'].forEach(key => {
+            if (typeof saved[key] === 'number') pomo.settings[key] = saved[key];
+          });
+          pomo.totalSeconds = pomo.settings[modeConfig[pomo.mode].settingKey] * 60;
+          pomo.secondsLeft = pomo.totalSeconds;
+          renderSettings();
+          updatePomoUI();
+        }
+      });
+    }
+  });
 })();

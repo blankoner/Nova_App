@@ -1,14 +1,15 @@
 /**
- * journal.js — calendar + daily reflection notes (sessionStorage).
+ * journal.js — calendar + daily reflection notes.
+ * Notes persist on the backend via Nova.appsStore (SQLite), so they survive
+ * page reloads and tab closes.
  */
 (function () {
-  const STORAGE_KEY = 'nova_journal';
   const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
                   'July', 'August', 'September', 'October', 'November', 'December'];
 
   let calYear, calMonth, selectedDate = null;
-  let notes = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '{}');
+  let notes = {};   // { "YYYY-MM-DD": "note text" } — loaded from the backend
 
   function dateKey(y, m, d) {
     return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -20,7 +21,10 @@
   }
 
   function saveNotesStorage() {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+    // Debounced save to the backend.
+    if (window.Nova && window.Nova.appsStore) {
+      window.Nova.appsStore.save({ journal: notes });
+    }
   }
 
   function renderCalendar() {
@@ -194,5 +198,15 @@
         saveNote();
       }
     });
+
+    // Load saved notes from the backend, then refresh the calendar so days
+    // with notes are marked and the selected day shows its saved text.
+    if (window.Nova && window.Nova.appsStore) {
+      window.Nova.appsStore.load().then((state) => {
+        notes = (state.journal && typeof state.journal === "object") ? state.journal : {};
+        renderCalendar();
+        if (selectedDate) selectDay(calYear, calMonth, t.getDate());
+      });
+    }
   });
 })();

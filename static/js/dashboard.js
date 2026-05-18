@@ -30,6 +30,12 @@ function switchView(name) {
   document.getElementById("nav-" + name).classList.add("active");
   document.getElementById("topbarTitle").textContent = viewMeta[name].title;
   document.getElementById("topbarSub").textContent   = viewMeta[name].sub;
+
+  // The Pomodoro overlay hides itself on the Pomodoro view and shows
+  // elsewhere (when running). Re-evaluate after every view change.
+  if (typeof window.refreshPomoOverlay === "function") {
+    window.refreshPomoOverlay();
+  }
 }
 
 window.switchView = switchView;
@@ -40,9 +46,19 @@ document.addEventListener("DOMContentLoaded", () => {
     chatBoxId: "chatBox",
     inputId: "userInput",
     sendBtnId: "sendBtn",
-    disableOnDone: true,
+    advisorPlaceholder: "Ask me about careers, your matches, or what to do next…",
     onDone: () => {
-      document.getElementById("resultBanner").style.display = "flex";
+      // Interview finished — reveal the banner. The chat stays open so the
+      // user can ask the advisor follow-up questions.
+      const banner = document.getElementById("resultBanner");
+      if (banner) banner.style.display = "flex";
+      // Swap the banner copy so it's clear they can keep chatting, not just
+      // jump to their matches.
+      const bannerText = document.getElementById("resultBannerText");
+      if (bannerText) {
+        bannerText.textContent =
+          "🎯 Interview complete! Ask me anything below, or see your matches.";
+      }
     }
   });
   chat.start();

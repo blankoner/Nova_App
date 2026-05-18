@@ -44,6 +44,29 @@
       My Matches
     </a>
 
+    <a class="nav-item" id="nav-skills" href="/skills">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/>
+      </svg>
+      Skills
+    </a>
+
+    <a class="nav-item" id="nav-game-strategy" href="/game/strategy">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M3 11l9-8 9 8M5 10v10h14V10M9 21v-6h6v6"/>
+      </svg>
+      Strategy Game
+    </a>
+
+    <a class="nav-item" id="nav-game-social" href="/game/social">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Social Game
+    </a>
+
     <a class="nav-item" id="nav-pomodoro" onclick="switchView('pomodoro')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
         <circle cx="12" cy="12" r="10"/>
@@ -125,7 +148,7 @@
         <div id="resultBanner" style="display:none" class="result-banner">
           <div class="result-banner-body">
             <span class="result-banner-eyebrow">Interview complete</span>
-            <span class="result-banner-title">Your matches are ready.</span>
+            <span class="result-banner-title" id="resultBannerText">Your matches are ready.</span>
           </div>
           <a href="/wyniki">See matches →</a>
         </div>
@@ -141,6 +164,7 @@
 
           <div class="todo-add-row">
             <input type="text" id="todoInput" placeholder="Add a new task… and press Enter">
+            <input type="datetime-local" id="todoDueInput" title="Due date (optional)">
             <button class="add-btn" onclick="addTodo()">+ Add</button>
           </div>
 
@@ -300,8 +324,23 @@
   </div><!-- /main -->
 </div><!-- /app -->
 
+<!-- ── POMODORO MINI OVERLAY ──────────────────────────────────────
+     Floating timer shown on every view except Pomodoro itself,
+     while the timer is running. Click to jump to the full view. -->
+<div class="pomo-overlay" id="pomoOverlay" role="button" tabindex="0"
+     aria-label="Pomodoro timer — click to open" title="Open Pomodoro">
+  <div class="pomo-overlay-ring" id="pomoOverlayRing"></div>
+  <div class="pomo-overlay-body">
+    <div class="pomo-overlay-time" id="pomoOverlayTime">25:00</div>
+    <div class="pomo-overlay-label" id="pomoOverlayLabel">Focus</div>
+  </div>
+  <button class="pomo-overlay-toggle" id="pomoOverlayToggle"
+          aria-label="Pause or resume timer" title="Pause / resume">⏸</button>
+</div>
+
 <!-- chat.js must load before dashboard.js (which calls Nova.createChat) -->
 <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+<script src="{{ url_for('static', filename='js/apps-store.js') }}"></script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 <script src="{{ url_for('static', filename='js/todo.js') }}"></script>
 <script src="{{ url_for('static', filename='js/pomodoro.js') }}"></script>

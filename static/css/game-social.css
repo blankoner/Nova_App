@@ -1,0 +1,314 @@
+/* game-social.css — Life-is-Strange-style social scenario game */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --violet: #6B21FF;
+  --violet-dark: #4A0FCC;
+  --violet-muted: rgba(107,33,255,0.08);
+  --ink: #0D0D0D;
+  --ink-2: #3A3A4A;
+  --muted: #9090A0;
+  --border: #EBEBF0;
+  --bg: #F4F4F8;
+  --white: #ffffff;
+  --green: #16A34A;
+  --red: #DC2626;
+}
+
+body {
+  background: var(--bg);
+  font-family: 'Poppins', sans-serif;
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+.game-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 3rem;
+}
+
+/* ── Header ── */
+.game-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.4rem;
+}
+.game-title {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+}
+.game-title .sub {
+  display: block;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 1px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--ink-2);
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+.btn:hover { background: var(--bg); transform: translateY(-1px); }
+.btn-violet {
+  background: var(--violet);
+  color: var(--white);
+  border-color: var(--violet);
+}
+.btn-violet:hover { background: var(--violet-dark); }
+.ms-auto { margin-left: auto; }
+
+/* ── Progress ── */
+.social-progress {
+  margin-bottom: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+.progress-dots {
+  display: flex;
+  gap: 0.4rem;
+}
+.progress-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.2s, transform 0.2s;
+}
+.progress-dot.done { background: var(--violet); }
+.progress-dot.current {
+  background: var(--white);
+  box-shadow: inset 0 0 0 2.5px var(--violet);
+  transform: scale(1.25);
+}
+.progress-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+/* ── Stage (the main card) ── */
+.social-stage {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.6rem 1.6rem 1.8rem;
+  animation: fadeIn 0.3s ease both;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.social-loading,
+.social-error {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--muted);
+}
+.social-error p { margin-bottom: 1rem; }
+
+/* ── Scene content ── */
+.scene-situation {
+  font-size: 0.98rem;
+  line-height: 1.6;
+  margin-bottom: 1.1rem;
+}
+
+.scene-person-card {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.3rem;
+}
+.scene-avatar {
+  flex-shrink: 0;
+}
+.avatar-svg {
+  width: 70px;
+  height: 70px;
+  display: block;
+}
+.avatar-head { fill: var(--white); }
+.avatar-head-ring {
+  fill: none;
+  stroke: var(--violet);
+  stroke-width: 3;
+  opacity: 0.35;
+}
+.avatar-eye { fill: var(--ink-2); }
+.avatar-mouth {
+  stroke: var(--ink-2);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
+.scene-person-name {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+}
+.scene-posture {
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+/* ── Step prompt ── */
+.step-prompt {
+  margin-bottom: 1rem;
+}
+.step-tag {
+  display: inline-block;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--violet);
+  background: var(--violet-muted);
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+  margin-bottom: 0.5rem;
+}
+.step-prompt p {
+  font-size: 0.9rem;
+  color: var(--ink-2);
+}
+
+/* ── Options ── */
+.social-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.social-option {
+  text-align: left;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: 11px;
+  padding: 0.85rem 1rem;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.14s, background 0.14s, transform 0.1s;
+}
+.social-option:hover {
+  border-color: var(--violet);
+  background: var(--violet-muted);
+  transform: translateX(3px);
+}
+.social-option:active {
+  transform: translateX(3px) scale(0.99);
+}
+.respond-option {
+  font-style: italic;
+  color: var(--ink-2);
+}
+/* Read-step options are short emotion labels — give them a touch more weight
+   so they read as choices rather than quotes (the respond-step uses italics). */
+.read-option {
+  font-weight: 500;
+}
+
+/* ── Result screen ── */
+.social-result {
+  text-align: center;
+}
+.social-result h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.7rem;
+  font-weight: 800;
+  margin-bottom: 0.4rem;
+}
+.social-result-sub {
+  font-size: 0.86rem;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+.result-read-line {
+  font-size: 0.9rem;
+  color: var(--ink-2);
+  margin-bottom: 1.4rem;
+}
+
+.result-skills {
+  text-align: left;
+  margin-bottom: 1rem;
+}
+.result-skill {
+  margin-bottom: 1.1rem;
+}
+.result-skill-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.86rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+.result-skill-val {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  color: var(--violet);
+}
+.result-bar-track {
+  height: 8px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.result-bar-fill {
+  height: 100%;
+  background: var(--violet);
+  border-radius: 99px;
+  transition: width 0.6s ease;
+  min-width: 2px;
+}
+.result-skill-blurb {
+  font-size: 0.74rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+  line-height: 1.45;
+}
+
+.save-note {
+  font-size: 0.74rem;
+  color: var(--muted);
+  margin: 0.6rem 0 1.2rem;
+  min-height: 1em;
+}
+
+.social-result-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+}
+.social-result-actions .btn {
+  flex: 1;
+  justify-content: center;
+  max-width: 180px;
+}

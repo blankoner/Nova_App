@@ -1,0 +1,393 @@
+/* game-strategy.css — Risk-style conquest game board and panels */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --violet: #6B21FF;
+  --violet-dark: #4A0FCC;
+  --violet-muted: rgba(107,33,255,0.08);
+  --ink: #0D0D0D;
+  --ink-2: #3A3A4A;
+  --muted: #9090A0;
+  --border: #EBEBF0;
+  --bg: #F4F4F8;
+  --white: #ffffff;
+  --green: #16A34A;
+  --red: #DC2626;
+  --player: #6B21FF;
+  --player-bg: rgba(107,33,255,0.12);
+  --ai: #DC2626;
+  --ai-bg: rgba(220,38,38,0.10);
+  --neutral: #C4C4D0;
+}
+
+body {
+  background: var(--bg);
+  font-family: 'Poppins', sans-serif;
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+.game-wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 3rem;
+}
+
+/* ── Header ── */
+.game-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.2rem;
+}
+.game-title {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+}
+.game-title .sub {
+  display: block;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 1px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--ink-2);
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+.btn:hover { background: var(--bg); transform: translateY(-1px); }
+.btn-violet {
+  background: var(--violet);
+  color: var(--white);
+  border-color: var(--violet);
+}
+.btn-violet:hover { background: var(--violet-dark); }
+.btn-violet:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+.ms-auto { margin-left: auto; }
+
+/* ── How-to panel ── */
+.howto-panel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 1.2rem;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.howto-panel.open { max-height: 360px; }
+.howto-inner {
+  padding: 1.1rem 1.3rem;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.howto-inner h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+.howto-inner ul { margin: 0.4rem 0 0 1.1rem; }
+.howto-inner li { margin-bottom: 0.25rem; }
+
+/* ── Main layout: board + side panel ── */
+.game-layout {
+  display: grid;
+  grid-template-columns: 1fr 290px;
+  gap: 1.2rem;
+}
+@media (max-width: 860px) {
+  .game-layout { grid-template-columns: 1fr; }
+}
+
+/* ── Board ── */
+.board-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem;
+}
+.game-board {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(107,33,255,0.04), transparent 60%),
+    radial-gradient(circle at 75% 70%, rgba(220,38,38,0.04), transparent 55%),
+    var(--bg);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Adjacency lines drawn behind the territories */
+.board-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.board-lines line {
+  stroke: #d6d6e2;
+  stroke-width: 0.5;
+}
+
+/* Territory node */
+.territory {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2.5px solid var(--neutral);
+  background: var(--white);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  font-family: 'Poppins', sans-serif;
+  transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
+  z-index: 1;
+}
+.territory:hover {
+  transform: translate(-50%, -50%) scale(1.08);
+  z-index: 3;
+}
+.terr-name {
+  font-size: 0.56rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  line-height: 1;
+  text-align: center;
+}
+.terr-armies {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.territory.owner-player {
+  border-color: var(--player);
+  background: var(--player-bg);
+}
+.territory.owner-player .terr-armies { color: var(--player); }
+.territory.owner-ai {
+  border-color: var(--ai);
+  background: var(--ai-bg);
+}
+.territory.owner-ai .terr-armies { color: var(--ai); }
+.territory.owner-neutral {
+  border-color: var(--neutral);
+}
+.territory.owner-neutral .terr-armies { color: var(--muted); }
+
+/* Selected attacker */
+.territory.selected {
+  border-color: var(--violet);
+  box-shadow: 0 0 0 4px var(--violet-muted), 0 4px 14px rgba(107,33,255,0.25);
+  z-index: 4;
+}
+/* Valid target / reinforceable */
+.territory.targetable {
+  border-style: dashed;
+  box-shadow: 0 0 0 3px rgba(22,163,74,0.18);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(22,163,74,0.18); }
+  50%      { box-shadow: 0 0 0 6px rgba(22,163,74,0.28); }
+}
+
+/* ── Side panel ── */
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.panel-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+}
+.panel-card h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.7rem;
+}
+
+/* Status grid */
+.status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem 0.8rem;
+}
+.status-item {
+  display: flex;
+  flex-direction: column;
+}
+.status-label {
+  font-size: 0.66rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.status-value {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+.status-value.player { color: var(--player); }
+.status-value.ai { color: var(--ai); }
+.status-phase {
+  grid-column: 1 / -1;
+  margin-top: 0.2rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Turn controls */
+.controls-card .btn-violet {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Battle log */
+.game-log {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.log-line {
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--muted);
+  padding: 0.25rem 0.4rem;
+  border-radius: 5px;
+}
+.log-line.latest {
+  color: var(--ink);
+  background: var(--violet-muted);
+  font-weight: 500;
+}
+
+/* ── Game-over overlay ── */
+.game-over-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13,13,13,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 100;
+}
+.game-over-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.game-over-card {
+  background: var(--white);
+  border-radius: 18px;
+  padding: 2rem;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  animation: popIn 0.3s ease both;
+}
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.92) translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+.game-over-card h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 0.4rem;
+}
+.game-over-card .game-over-sub {
+  font-size: 0.86rem;
+  color: var(--muted);
+  margin-bottom: 1.4rem;
+  line-height: 1.5;
+}
+
+/* Skill result bars */
+.result-skill {
+  text-align: left;
+  margin-bottom: 0.9rem;
+}
+.result-skill-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+.result-skill-val {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  color: var(--violet);
+}
+.result-bar-track {
+  height: 8px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.result-bar-fill {
+  height: 100%;
+  background: var(--violet);
+  border-radius: 99px;
+  transition: width 0.6s ease;
+  min-width: 2px;
+}
+
+.save-note {
+  font-size: 0.74rem;
+  color: var(--muted);
+  margin: 0.4rem 0 1.2rem;
+  min-height: 1em;
+}
+
+.game-over-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+}
+.game-over-actions .btn { flex: 1; justify-content: center; }
