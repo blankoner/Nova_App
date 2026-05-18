@@ -336,6 +336,47 @@ def chat():
     return jsonify({"message": ai_response, "done": False})
 
 
+@app.route("/chat-history", methods=["GET"])
+def chat_history():
+    """Returns existing conversation messages for UI restoration — no reset."""
+    name = session.get("user_name", "Guest")
+    user_profile = skills_mod.load_profile(name)
+    chat_state = user_profile.get("chat") or {}
+    done = user_profile.get("interview") is not None
+
+    messages = []
+
+    # Rebuild visible interview messages:
+    # index 0 is the system prompt (skip), index 1 is the fake starter user
+    # message "Hi, I want to find a job…" (skip) — everything after is real.
+    interview_history = chat_state.get("interview_history") or []
+    first_user_seen = False
+    for msg in interview_history:
+        role = msg.get("role")
+        if role == "system":
+            continue
+        if role == "user" and not first_user_seen:
+            first_user_seen = True
+            continue  # skip the scripted starter message
+        text = msg.get("content", "")
+        if role == "assistant":
+            # Strip the profile JSON line from the closing interview message.
+            cleaned = clean_response_for_display(text)
+            if cleaned:
+                text = cleaned
+        messages.append({"role": "user" if role == "user" else "ai", "text": text})
+
+    # Append advisor messages (after the interview) — skip their system prompt.
+    if done:
+        for msg in (chat_state.get("advisor_history") or []):
+            role = msg.get("role")
+            if role == "system":
+                continue
+            messages.append({"role": "user" if role == "user" else "ai", "text": msg.get("content", "")})
+
+    return jsonify({"messages": messages, "done": done})
+
+
 @app.route("/start", methods=["POST"])
 def start():
     """Inicjuje rozmowę — AI zadaje pierwsze pytanie. Resetuje wywiad."""

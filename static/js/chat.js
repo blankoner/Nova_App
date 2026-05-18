@@ -57,6 +57,28 @@
 
     async function start() {
       if (started) return;
+
+      // Try to restore an existing conversation first (e.g. after navigating
+      // away to the strategy game or results page and pressing Back).
+      try {
+        const histRes = await fetch("/chat-history");
+        const histData = await histRes.json();
+        if (histData.messages && histData.messages.length > 0) {
+          started = true;
+          histData.messages.forEach(m => addBubble(m.text, m.role));
+          if (histData.done) {
+            advisorMode = true;
+            input.placeholder = advisorPlaceholder;
+            if (onDoneCb) onDoneCb(histData);
+          }
+          return;
+        }
+      } catch (e) {
+        // Network error or unexpected response — fall through to fresh start.
+        console.warn("Could not fetch chat history, starting fresh.", e);
+      }
+
+      // No existing conversation — start a fresh interview.
       started = true;
       showTyping();
       try {
