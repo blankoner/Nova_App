@@ -40,7 +40,8 @@ document.addEventListener("DOMContentLoaded", () => {
     chatBoxId: "chatBox",
     inputId: "userInput",
     sendBtnId: "sendBtn",
-    disableOnDone: false,
+    // On the landing page we move the user straight to the "all set" panel
+    // when the interview ends; the advisor follow-up chat lives in the dashboard.
     onDone: () => {
       setTimeout(() => setStep(3), 800);
     }

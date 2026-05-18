@@ -199,6 +199,19 @@
       updatePomoUI();
     }
     if (key === 'sessions') updatePomoUI();
+
+    // Persist the timer settings so they survive a reload.
+    if (window.Nova && window.Nova.appsStore) {
+      window.Nova.appsStore.save({ pomodoro: { settings: pomo.settings } });
+    }
+  }
+
+  // Reflect the current settings into the on-screen number fields.
+  function renderSettings() {
+    ['focus', 'short', 'long', 'sessions'].forEach(key => {
+      const el = document.getElementById('set-' + key);
+      if (el) el.textContent = pomo.settings[key];
+    });
   }
 
   // Expose to inline onclick
@@ -240,6 +253,24 @@
       overlayToggle.addEventListener('click', (e) => {
         e.stopPropagation(); // don't trigger the overlay's "open view" click
         toggleTimer();
+      });
+    }
+
+    // Load saved timer settings from the backend. We only apply them while the
+    // timer isn't running, so we don't yank time out from under an active
+    // session. Then re-sync the current mode's duration.
+    if (window.Nova && window.Nova.appsStore) {
+      window.Nova.appsStore.load().then((state) => {
+        const saved = state.pomodoro && state.pomodoro.settings;
+        if (saved && !pomo.running) {
+          ['focus', 'short', 'long', 'sessions'].forEach(key => {
+            if (typeof saved[key] === 'number') pomo.settings[key] = saved[key];
+          });
+          pomo.totalSeconds = pomo.settings[modeConfig[pomo.mode].settingKey] * 60;
+          pomo.secondsLeft = pomo.totalSeconds;
+          renderSettings();
+          updatePomoUI();
+        }
       });
     }
   });

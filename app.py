@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from groq import Groq
 from matcher import find_top_offers
 import skills as skills_mod
+import social_scenes
 
 load_dotenv()
 
@@ -66,6 +67,107 @@ Allowed values:
 """
 
 
+# ── Advisor prompt (used AFTER the interview is complete) ──────────────────────
+# Once we have the user's profile, the chat switches into a free-form Q&A mode.
+# The user can ask about careers, specific roles, what their matches mean, how to
+# build skills, study paths, etc. The AI is no longer collecting data and must
+# NOT emit any JSON — that phase is over.
+#
+# The {profile_summary} placeholder is filled in per-request with a readable
+# summary of what we learned in the interview, so answers stay personal.
+ADVISOR_SYSTEM_PROMPT = """You are a warm, encouraging career advisor for a young person who has
+just finished a career-discovery interview. You already know their profile —
+here is a summary of what they told you:
+
+{profile_summary}
+
+The interview is OVER. Your job now is to answer their follow-up questions and
+help them think things through. They might ask about:
+- specific jobs, roles, or industries (what the work is like, typical paths in)
+- what their job matches mean or why something was suggested
+- study options, courses, or whether university is right for them
+- how to build the skills a career needs
+- their own doubts and uncertainties about the future
+
+Rules:
+- Stay focused on careers, study, work, and skills — that's what this tool is for.
+  If they ask about something clearly unrelated, gently steer back, e.g.
+  "That's a bit outside what I can help with here — but speaking of your future…"
+- Topics around their career are fair game even if broad (e.g. "I don't know if
+  I should go to university" is absolutely something to help with).
+- Be concrete and honest. If something is hard or uncertain, say so kindly.
+  Don't over-promise or give generic platitudes.
+- Keep answers conversational and reasonably short — a few sentences to a short
+  paragraph. They can always ask for more.
+- Use what you know about them. Reference their interests, situation, or goals
+  when it makes the answer more useful.
+- NEVER output JSON or any structured data block. The interview is finished.
+- You are not a substitute for a real careers counsellor for major decisions —
+  if something needs professional guidance, you can say so.
+"""
+
+
+def build_profile_summary(profile: dict) -> str:
+    """
+    Turn the interview profile dict into a short human-readable summary for the
+    advisor prompt. Defensive against missing keys — the interview JSON can vary.
+    """
+    if not profile:
+        return "(No interview details available.)"
+
+    parts = []
+    age = profile.get("age")
+    if age:
+        parts.append(f"- Age: {age}")
+
+    situation = profile.get("situation", {}) or {}
+    status = situation.get("status")
+    detail = situation.get("detail")
+    field_or_role = situation.get("field_or_role")
+    if status:
+        line = f"- Situation: {status}"
+        if detail:
+            line += f" ({detail})"
+        if field_or_role:
+            line += f", field/role: {field_or_role}"
+        parts.append(line)
+
+    job_change = profile.get("job_change")
+    if job_change:
+        parts.append(f"- Regarding their current job: wants to {job_change}")
+
+    interests = profile.get("interests") or []
+    if interests:
+        parts.append(f"- Interests: {', '.join(str(i) for i in interests)}")
+
+    field_idea = profile.get("field_idea", {}) or {}
+    if field_idea.get("field"):
+        clarity = field_idea.get("clarity", "")
+        parts.append(f"- Field idea ({clarity}): {field_idea['field']}")
+
+    vision = profile.get("success_vision", {}) or {}
+    if vision.get("primary"):
+        line = f"- Vision of success: {vision['primary']}"
+        if vision.get("custom"):
+            line += f" — \"{vision['custom']}\""
+        parts.append(line)
+
+    if profile.get("work_style"):
+        parts.append(f"- Preferred work style: {profile['work_style']}")
+    if profile.get("work_type"):
+        parts.append(f"- Preferred work type: {profile['work_type']}")
+
+    subjects = profile.get("favorite_subjects") or []
+    if subjects:
+        parts.append(f"- Favourite subjects: {', '.join(str(s) for s in subjects)}")
+
+    creation = profile.get("proud_creation", {}) or {}
+    if creation.get("has_created") and creation.get("description"):
+        parts.append(f"- Proud of creating: {creation['description']}")
+
+    return "\n".join(parts) if parts else "(No interview details available.)"
+
+
 def chat_with_groq(messages):
     """Sends messages to Groq and returns the response."""
     response = client.chat.completions.create(
@@ -123,57 +225,91 @@ def chat():
     if not user_message:
         return jsonify({"error": "Pusta wiadomość"}), 400
 
-    # Inicjalizuj historię rozmowy jeśli pusta
-    if "history" not in session:
-        session["history"] = [
-            {"role": "system", "content": INTERVIEW_SYSTEM_PROMPT}
-        ]
+    # The whole conversation now lives in the user's profile (SQLite), not in
+    # the Flask session cookie — so it survives page reloads and never risks
+    # overflowing the ~4 KB cookie limit.
+    name = session.get("user_name", "Guest")
+    user_profile = skills_mod.load_profile(name)
+    chat_state = user_profile["chat"]
 
-    # Dodaj wiadomość użytkownika do historii
-    history = session["history"]
+    # ── ADVISOR MODE ──────────────────────────────────────────────────────────
+    # If the interview is already finished, we're in free-form Q&A mode. The
+    # user can keep asking about careers, their matches, study paths, etc.
+    if user_profile.get("interview") is not None:
+        advisor_history = chat_state.get("advisor_history") or []
+        if not advisor_history:
+            # First advisor message — build the history with the advisor prompt,
+            # seeded with a fresh summary of the user's profile.
+            summary = build_profile_summary(user_profile.get("interview"))
+            advisor_history = [{
+                "role": "system",
+                "content": ADVISOR_SYSTEM_PROMPT.format(profile_summary=summary),
+            }]
+
+        advisor_history.append({"role": "user", "content": user_message})
+        ai_response = chat_with_groq(advisor_history)
+        advisor_history.append({"role": "assistant", "content": ai_response})
+
+        chat_state["advisor_history"] = advisor_history
+        skills_mod.save_profile(user_profile)
+
+        # `done` stays True so the frontend keeps showing the post-interview
+        # state — but the chat box is NOT disabled in this mode.
+        return jsonify({"message": ai_response, "done": True, "mode": "advisor"})
+
+    # ── INTERVIEW MODE ────────────────────────────────────────────────────────
+    # Initialise the interview history with the system prompt if it's empty.
+    history = chat_state.get("interview_history") or []
+    if not history:
+        history = [{"role": "system", "content": INTERVIEW_SYSTEM_PROMPT}]
+
     history.append({"role": "user", "content": user_message})
-
-    # Zapytaj Groq
     ai_response = chat_with_groq(history)
-
-    # Dodaj odpowiedź AI do historii
     history.append({"role": "assistant", "content": ai_response})
-    session["history"] = history
-    session.modified = True
+    chat_state["interview_history"] = history
 
     # Sprawdź czy wywiad się zakończył
     profile = parse_profile_from_response(ai_response)
     if profile:
-        session["profile"] = profile
-        # Persist the interview into the user's on-disk profile, alongside
-        # any skills they've already built up through games.
-        name = session.get("user_name", "Guest")
-        user_profile = skills_mod.load_profile(name)
+        # Store the interview result on the profile — this also flips the
+        # conversation into advisor mode on the next message.
         user_profile["interview"] = profile
         skills_mod.save_profile(user_profile)
 
         display_text = clean_response_for_display(ai_response)
+        # `done` means "interview finished" — but the chat stays open: the
+        # frontend switches into advisor mode rather than disabling input.
         return jsonify({
             "message": display_text or "Thank you! I have everything I need.",
             "done": True,
+            "mode": "advisor",
             "profile": profile
         })
 
+    # Interview still going — save progress and return the next question.
+    skills_mod.save_profile(user_profile)
     return jsonify({"message": ai_response, "done": False})
 
 
 @app.route("/start", methods=["POST"])
 def start():
-    """Inicjuje rozmowę — AI zadaje pierwsze pytanie."""
-    session.clear()
+    """Inicjuje rozmowę — AI zadaje pierwsze pytanie. Resetuje wywiad."""
+    name = session.get("user_name", "Guest")
+    user_profile = skills_mod.load_profile(name)
+
+    # Starting a fresh interview wipes the previous conversation and the old
+    # interview result, but keeps skills and game history intact.
+    user_profile["interview"] = None
+    user_profile["chat"] = skills_mod.blank_chat()
+
     history = [{"role": "system", "content": INTERVIEW_SYSTEM_PROMPT}]
     history.append({"role": "user", "content": "Hi, I want to find a job or school that suits me."})
 
     ai_response = chat_with_groq(history)
     history.append({"role": "assistant", "content": str(ai_response)})
 
-    session["history"] = history
-    session.modified = True
+    user_profile["chat"]["interview_history"] = history
+    skills_mod.save_profile(user_profile)
 
     return jsonify({"message": ai_response})
 
@@ -181,11 +317,12 @@ def start():
 @app.route("/dashboard")
 def dashboard():
     # The signup / "continue as guest" flow passes the name as ?name=...
-    # Persist it in the session so later API calls know whose profile to load.
+    # Keep it in the (lightweight) session so later requests know who's logged
+    # in — the actual data lives in the database, keyed by this name.
     name = request.args.get("name", "Guest").strip() or "Guest"
     session["user_name"] = name
-    # Make sure a profile file exists from the first visit, so the skills page
-    # and game endpoints always have something to read.
+    # Make sure a profile row exists from the first visit, so the skills page,
+    # game endpoints and app-state endpoints always have something to read.
     profile = skills_mod.load_profile(name)
     skills_mod.save_profile(profile)
     return render_template("dashboard.html")
@@ -193,11 +330,10 @@ def dashboard():
 
 @app.route("/wyniki")
 def wyniki():
-    # Prefer the persistent on-disk profile (interview + skills from games).
-    # Fall back to the session-only profile if the user hasn't been saved yet.
+    # The interview profile and skills both live in the database now.
     name = session.get("user_name", "Guest")
     user_profile = skills_mod.load_profile(name)
-    interview = user_profile.get("interview") or session.get("profile")
+    interview = user_profile.get("interview")
 
     if not interview:
         return render_template("index.html")
@@ -208,7 +344,7 @@ def wyniki():
     match_input["skills"] = user_profile.get("skills", {})
 
     offers = find_top_offers(match_input, top_n=5)
-    return render_template("wyniki.html", profile=interview, offers=offers)
+    return render_template("wyniki.html", profile=interview, offers=offers, name=name)
 
 
 @app.route("/skills")
@@ -238,11 +374,86 @@ def game_strategy():
     return render_template("game_strategy.html", name=name)
 
 
+@app.route("/game/social")
+def game_social():
+    """The Social game — a Life-is-Strange-style social-scenario game."""
+    name = session.get("user_name", "Guest")
+    # Ensure a profile exists so the game's result POST has somewhere to land.
+    profile = skills_mod.load_profile(name)
+    skills_mod.save_profile(profile)
+    return render_template("game_social.html", name=name)
+
+
+@app.route("/api/social/scenes")
+def api_social_scenes():
+    """
+    Serve the Social game's scenes to the client — with all scoring data
+    (correct emotions, response weights) stripped out.
+    """
+    return jsonify({"scenes": social_scenes.scenes_for_client()})
+
+
+@app.route("/api/social/score", methods=["POST"])
+def api_social_score():
+    """
+    Score a completed Social playthrough. The client sends its per-scene
+    answers; we compute the skill scores server-side (so weights stay hidden)
+    and return them. We do NOT persist here — the client then calls
+    /api/game-result with the returned skills, same as the Strategy game.
+
+    Expected JSON body:
+      { "answers": [ {"scene": id, "read": emotion_key, "response": resp_id}, ... ] }
+    """
+    data = request.get_json(silent=True) or {}
+    answers = data.get("answers", [])
+    if not isinstance(answers, list):
+        return jsonify({"error": "'answers' must be a list"}), 400
+
+    scored = social_scenes.score_playthrough(answers)
+    return jsonify(scored)
+
+
 @app.route("/api/profile")
 def api_profile():
     """Return the current user's full persistent profile as JSON."""
     name = session.get("user_name", "Guest")
     return jsonify(skills_mod.load_profile(name))
+
+
+@app.route("/api/apps", methods=["GET"])
+def api_apps_get():
+    """
+    Return the saved state of the dashboard mini-apps (to-do list, journal,
+    pomodoro settings) for the current user. The frontend loads this on
+    startup so nothing is lost between sessions.
+    """
+    name = session.get("user_name", "Guest")
+    profile = skills_mod.load_profile(name)
+    return jsonify(profile.get("apps", skills_mod.blank_apps()))
+
+
+@app.route("/api/apps", methods=["POST"])
+def api_apps_save():
+    """
+    Save dashboard mini-app state. The body may contain any subset of
+    {"todos": [...], "journal": {...}, "pomodoro": {...}} — only the keys
+    present are updated, so the to-do list and journal can save independently.
+    """
+    data = request.get_json(silent=True) or {}
+    name = session.get("user_name", "Guest")
+    profile = skills_mod.load_profile(name)
+    apps = profile.setdefault("apps", skills_mod.blank_apps())
+
+    # Only accept known keys, and only the ones actually sent.
+    if "todos" in data and isinstance(data["todos"], list):
+        apps["todos"] = data["todos"]
+    if "journal" in data and isinstance(data["journal"], dict):
+        apps["journal"] = data["journal"]
+    if "pomodoro" in data and isinstance(data["pomodoro"], dict):
+        apps["pomodoro"] = data["pomodoro"]
+
+    skills_mod.save_profile(profile)
+    return jsonify({"ok": True, "apps": apps})
 
 
 @app.route("/api/game-result", methods=["POST"])

@@ -1,37 +1,56 @@
 """
-skills.py — skill model + persistent user profile storage.
+skills.py — skill model + persistent user profile storage (SQLite-backed).
 
 This module is the single source of truth for:
   - which skills exist (SKILLS)
-  - how a game's raw result maps onto skills (games register a mapper)
-  - loading / saving a user's persistent profile as JSON on disk
+  - how a game's raw result maps onto skills (apply_game_result)
+  - loading / saving a user's persistent profile
 
-A "user profile" here is broader than the interview profile. It bundles:
+A "user profile" bundles everything we keep for one user:
   {
-    "name":            "alice",
-    "interview":       { ...the JSON the AI interview produced... } | null,
-    "skills":          { "logical_thinking": {"level": 0-100, "samples": int}, ... },
-    "game_history":    [ {"game": "...", "ts": ..., "result": {...}}, ... ]
+    "name":         "alice",
+    "interview":    { ...the JSON the AI interview produced... } | null,
+    "skills":       { "logical_thinking": {"level": 0-100, "samples": int}, ... },
+    "game_history": [ {"game": "...", "ts": ..., "result": {...}}, ... ],
+    "apps": {
+        "todos":   [ {text, done, created, due}, ... ],
+        "journal": { "2026-05-09": "note text", ... },
+        "pomodoro": { "settings": {focus, short, long, sessions} },
+    },
+    "chat": {
+        "interview_history": [ {role, content}, ... ],   # the Q&A interview
+        "advisor_history":   [ {role, content}, ... ],    # post-interview Q&A
+    },
   }
 
-Storage: one JSON file per user under data/users/<name>.json.
-This is deliberately simple — no database, no migrations. Easy to swap for
-SQLite later because every read/write goes through load_profile / save_profile.
+── Storage ──
+The whole profile is stored as one JSON blob in a SQLite table, keyed by the
+user's (sanitised) name. We keep the read/write API — load_profile / save_profile
+— identical to the previous file-based version, so the rest of the app does not
+need to change. Storing the profile as a single blob (rather than normalised
+tables) is a deliberate choice: the profile is always read and written as a
+whole, so a blob avoids multi-table joins and migrations while still giving us
+durability and atomic writes. It can be normalised later if ever needed.
 """
 
 import os
 import json
 import time
 import re
+import sqlite3
+import threading
 
-# ── Where user profiles live ──────────────────────────────────────────────────
-# data/users/<name>.json   (created on first save)
-DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "users")
+# ── Where the database lives ──────────────────────────────────────────────────
+# data/users.db   (created automatically on first use)
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+DB_PATH = os.path.join(DATA_DIR, "users.db")
+
+# SQLite + Flask's threaded dev server: each call opens its own short-lived
+# connection. A lock serialises writes so two requests can't corrupt each other.
+_write_lock = threading.Lock()
 
 
 # ── The skill catalogue ───────────────────────────────────────────────────────
-# Each skill has a stable key, a human label, and a short description shown
-# on the skills page. Keep keys snake_case — they appear in JSON and templates.
 SKILLS = {
     "logical_thinking": {
         "label": "Logical Thinking",
@@ -63,7 +82,6 @@ SKILLS = {
     },
 }
 
-# Skill keys in display order
 SKILL_ORDER = list(SKILLS.keys())
 
 
@@ -72,87 +90,165 @@ def blank_skills() -> dict:
     return {key: {"level": 0, "samples": 0} for key in SKILL_ORDER}
 
 
+def blank_apps() -> dict:
+    """Fresh state for the dashboard mini-apps (to-do, journal, pomodoro)."""
+    return {
+        "todos": [],
+        "journal": {},
+        "pomodoro": {"settings": {"focus": 25, "short": 5, "long": 15, "sessions": 4}},
+    }
+
+
+def blank_chat() -> dict:
+    """Fresh chat state — the interview and advisor conversations."""
+    return {
+        "interview_history": [],
+        "advisor_history": [],
+    }
+
+
 def blank_profile(name: str) -> dict:
-    """A brand-new user profile with no interview and no skill progress."""
+    """A brand-new user profile with nothing filled in yet."""
     return {
         "name": _safe_name(name),
         "interview": None,
         "skills": blank_skills(),
         "game_history": [],
+        "apps": blank_apps(),
+        "chat": blank_chat(),
     }
 
 
-# ── Filename safety ───────────────────────────────────────────────────────────
+# ── Name safety ───────────────────────────────────────────────────────────────
 def _safe_name(name: str) -> str:
     """
-    Turn an arbitrary display name into a safe filename stem.
-    Prevents path traversal (../) and odd characters. Falls back to 'guest'.
+    Normalise an arbitrary display name into a safe storage key.
+    Lowercased, only [a-z0-9_-], falls back to 'guest'.
     """
     name = (name or "").strip().lower()
     name = re.sub(r"[^a-z0-9_-]", "_", name)
     return name or "guest"
 
 
-def _profile_path(name: str) -> str:
-    return os.path.join(DATA_DIR, _safe_name(name) + ".json")
+# ── Database setup ────────────────────────────────────────────────────────────
+def _connect() -> sqlite3.Connection:
+    """Open a connection to the user database, creating the file/dir if needed."""
+    os.makedirs(DATA_DIR, exist_ok=True)
+    con = sqlite3.connect(DB_PATH)
+    return con
+
+
+def _init_db() -> None:
+    """Create the profiles table if it doesn't exist. Safe to call repeatedly."""
+    con = _connect()
+    try:
+        con.execute("""
+            CREATE TABLE IF NOT EXISTS profiles (
+                name        TEXT PRIMARY KEY,
+                data        TEXT NOT NULL,
+                updated_at  INTEGER NOT NULL
+            )
+        """)
+        con.commit()
+    finally:
+        con.close()
+
+
+# Initialise the schema as soon as the module is imported.
+_init_db()
+
+
+# ── Self-healing ──────────────────────────────────────────────────────────────
+def _heal_profile(profile: dict, name: str) -> dict:
+    """
+    Make sure a loaded profile has every key the current code expects, adding
+    missing ones with sensible defaults. This lets old data (saved before a
+    feature existed) keep working after an update.
+    """
+    profile.setdefault("name", _safe_name(name))
+    profile.setdefault("interview", None)
+    profile.setdefault("game_history", [])
+
+    skills = profile.setdefault("skills", blank_skills())
+    for key in SKILL_ORDER:
+        skills.setdefault(key, {"level": 0, "samples": 0})
+
+    apps = profile.setdefault("apps", blank_apps())
+    apps.setdefault("todos", [])
+    apps.setdefault("journal", {})
+    pomo = apps.setdefault("pomodoro", {"settings": {}})
+    pomo.setdefault("settings", {})
+    for k, v in {"focus": 25, "short": 5, "long": 15, "sessions": 4}.items():
+        pomo["settings"].setdefault(k, v)
+
+    chat = profile.setdefault("chat", blank_chat())
+    chat.setdefault("interview_history", [])
+    chat.setdefault("advisor_history", [])
+
+    return profile
 
 
 # ── Load / save ───────────────────────────────────────────────────────────────
 def load_profile(name: str) -> dict:
     """
-    Load a user's profile from disk. If the file doesn't exist (or is corrupt),
-    return a fresh blank profile — callers can always rely on a usable dict.
-    Also self-heals: if an older file is missing newer skill keys, they're added.
+    Load a user's profile from the database. If there's no row yet (or the
+    stored data is somehow corrupt), return a fresh blank profile — callers can
+    always rely on getting a complete, usable dict.
     """
-    path = _profile_path(name)
-    if not os.path.exists(path):
+    key = _safe_name(name)
+    con = _connect()
+    try:
+        row = con.execute(
+            "SELECT data FROM profiles WHERE name = ?", (key,)
+        ).fetchone()
+    finally:
+        con.close()
+
+    if row is None:
         return blank_profile(name)
 
     try:
-        with open(path, "r", encoding="utf-8") as f:
-            profile = json.load(f)
-    except (json.JSONDecodeError, OSError):
+        profile = json.loads(row[0])
+    except (json.JSONDecodeError, TypeError):
         return blank_profile(name)
 
-    # ── Self-healing for forward compatibility ──
-    profile.setdefault("name", _safe_name(name))
-    profile.setdefault("interview", None)
-    profile.setdefault("game_history", [])
-    skills = profile.setdefault("skills", blank_skills())
-    # Add any skill keys introduced after this file was written
-    for key in SKILL_ORDER:
-        skills.setdefault(key, {"level": 0, "samples": 0})
-
-    return profile
+    return _heal_profile(profile, name)
 
 
 def save_profile(profile: dict) -> None:
-    """Write a profile back to disk, creating the data directory if needed."""
-    os.makedirs(DATA_DIR, exist_ok=True)
-    path = _profile_path(profile.get("name", "guest"))
-    # Write to a temp file then rename — avoids a half-written file if the
-    # process dies mid-write.
-    tmp = path + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(profile, f, indent=2, ensure_ascii=False)
-    os.replace(tmp, path)
+    """
+    Persist a profile to the database. An UPSERT keyed on the user's name —
+    inserts a new row or replaces the existing one. Serialised by a lock so
+    concurrent requests can't clobber each other mid-write.
+    """
+    key = _safe_name(profile.get("name", "guest"))
+    profile["name"] = key  # keep the stored name normalised
+    blob = json.dumps(profile, ensure_ascii=False)
+    now = int(time.time())
+
+    with _write_lock:
+        con = _connect()
+        try:
+            con.execute(
+                """
+                INSERT INTO profiles (name, data, updated_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(name) DO UPDATE SET
+                    data = excluded.data,
+                    updated_at = excluded.updated_at
+                """,
+                (key, blob, now),
+            )
+            con.commit()
+        finally:
+            con.close()
 
 
 # ── Applying a game result to a profile ───────────────────────────────────────
-# A game result is a dict of { skill_key: score_0_to_100 }. We don't trust the
-# client blindly — unknown keys are dropped and values are clamped to 0–100.
-#
-# Each skill level is a *weighted running average* of all samples ever recorded
-# for that skill. New samples are weighted slightly higher than old ones so the
-# profile drifts toward recent performance without wild swings.
-
-# How much a brand-new sample pulls the level toward itself, by sample count.
-# First sample: level jumps straight to it. Later samples: gentler nudges.
 def _blend(old_level: float, old_samples: int, new_score: float) -> float:
+    """Weighted running average — recent samples always keep some weight."""
     if old_samples <= 0:
         return new_score
-    # weight of the new sample shrinks as we gather more history,
-    # but never below 0.25 so recent play always matters
     weight = max(0.25, 1.0 / (old_samples + 1))
     return old_level * (1 - weight) + new_score * weight
 
@@ -160,7 +256,7 @@ def _blend(old_level: float, old_samples: int, new_score: float) -> float:
 def apply_game_result(profile: dict, game_id: str, result: dict) -> dict:
     """
     Fold one game's result into the user's skill levels and history.
-    Returns the same profile dict (mutated) for convenience.
+    Returns the same (mutated) profile for convenience.
 
     `result` is { skill_key: score } — scores outside 0–100 are clamped,
     unknown skill keys are ignored.
@@ -170,7 +266,7 @@ def apply_game_result(profile: dict, game_id: str, result: dict) -> dict:
 
     for key, raw in (result or {}).items():
         if key not in SKILLS:
-            continue  # ignore anything not in our catalogue
+            continue
         try:
             score = float(raw)
         except (TypeError, ValueError):
@@ -182,7 +278,6 @@ def apply_game_result(profile: dict, game_id: str, result: dict) -> dict:
         entry["level"] = round(_blend(entry["level"], entry["samples"], score), 1)
         entry["samples"] = entry["samples"] + 1
 
-    # Record history (even if no skills matched — useful for debugging)
     profile.setdefault("game_history", []).append({
         "game": game_id,
         "ts": int(time.time()),
@@ -194,10 +289,7 @@ def apply_game_result(profile: dict, game_id: str, result: dict) -> dict:
 
 # ── Helper for templates / matcher ────────────────────────────────────────────
 def skills_for_display(profile: dict) -> list:
-    """
-    Return a list of dicts ready for the skills page, in display order:
-      [ {key, label, desc, level, samples}, ... ]
-    """
+    """Return a list of dicts ready for the skills page, in display order."""
     skills = profile.get("skills", {})
     out = []
     for key in SKILL_ORDER:

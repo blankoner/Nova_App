@@ -1,15 +1,19 @@
 /**
  * todo.js — task list with active/done filters, due dates, and drag-and-drop reorder.
- * Persisted in sessionStorage. Each todo: { text, done, created, due (ISO|null) }.
+ * Persisted on the backend via Nova.appsStore (SQLite), so tasks survive
+ * page reloads and tab closes. Each todo: { text, done, created, due (ISO|null) }.
  * Array order = display order. Manual reorder rewrites the array.
  */
 (function () {
-  let todos = JSON.parse(sessionStorage.getItem("nova_todos") || "[]");
+  let todos = [];
   let filter = "all";
   let dragSrcIdx = null;  // index in the full `todos` array, not the visible slice
 
   function saveTodos() {
-    sessionStorage.setItem("nova_todos", JSON.stringify(todos));
+    // Debounced save to the backend — rapid edits coalesce into one request.
+    if (window.Nova && window.Nova.appsStore) {
+      window.Nova.appsStore.save({ todos });
+    }
   }
 
   function escHtml(s) {
@@ -262,6 +266,14 @@
       attachDragHandlers(list);
     }
 
+    // Render an empty list immediately, then load saved tasks from the backend
+    // and re-render once they arrive.
     renderTodos();
+    if (window.Nova && window.Nova.appsStore) {
+      window.Nova.appsStore.load().then((state) => {
+        todos = Array.isArray(state.todos) ? state.todos : [];
+        renderTodos();
+      });
+    }
   });
 })();

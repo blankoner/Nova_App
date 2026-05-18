@@ -54,6 +54,15 @@
       Strategy Game
     </a>
 
+    <a class="nav-item" id="nav-game-social" href="/game/social">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Social Game
+    </a>
+
     <a class="nav-item" id="nav-pomodoro" onclick="switchView('pomodoro')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
         <circle cx="12" cy="12" r="10"/>
@@ -113,7 +122,7 @@
           </div>
         </div>
         <div id="resultBanner" style="display:none" class="result-banner">
-          <span>🎯 Interview complete! Your matches are ready.</span>
+          <span id="resultBannerText">🎯 Interview complete! Your matches are ready.</span>
           <a href="/wyniki">See matches →</a>
         </div>
       </div>
@@ -276,6 +285,7 @@
 
 <!-- chat.js must load before dashboard.js (which calls Nova.createChat) -->
 <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+<script src="{{ url_for('static', filename='js/apps-store.js') }}"></script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 <script src="{{ url_for('static', filename='js/todo.js') }}"></script>
 <script src="{{ url_for('static', filename='js/pomodoro.js') }}"></script>
