@@ -1,17 +1,24 @@
 /**
- * chat.js — reusable chat logic for the career interview.
+ * chat.js — reusable chat logic for the career interview + advisor follow-up.
+ *
+ * The conversation has two phases:
+ *   1. INTERVIEW — the AI asks questions to build the user's profile.
+ *   2. ADVISOR   — once the interview is done, the chat stays OPEN: the user
+ *                  can ask follow-up questions about careers, their matches,
+ *                  study paths, etc. The backend handles the mode switch; this
+ *                  file just keeps the input usable and adjusts the UI.
  *
  * Exposes window.Nova.createChat(options) which returns an object with:
  *   - start()          → fetches the first AI message
- *   - send()           → reads the input box and posts user message
- *   - onDone(callback) → registers a callback fired when the interview ends
+ *   - send()           → reads the input box and posts the user message
+ *   - onDone(callback) → fired ONCE, when the interview finishes
  *
  * Options:
  *   chatBoxId   — id of the scrollable bubbles container       (required)
  *   inputId     — id of the user input <input>                 (required)
  *   sendBtnId   — id of the send button                        (required)
- *   onDone      — optional callback when the interview ends    (optional)
- *   disableOnDone — if true, disable input + button on done    (default false)
+ *   onDone      — optional callback, fired once on interview end (optional)
+ *   advisorPlaceholder — input placeholder text for advisor mode (optional)
  */
 (function () {
   window.Nova = window.Nova || {};
@@ -20,9 +27,11 @@
     const chatBox = document.getElementById(opts.chatBoxId);
     const input = document.getElementById(opts.inputId);
     const sendBtn = document.getElementById(opts.sendBtnId);
-    const disableOnDone = !!opts.disableOnDone;
+    const advisorPlaceholder = opts.advisorPlaceholder ||
+      "Ask me anything about careers, your matches, or next steps…";
     let onDoneCb = opts.onDone || null;
     let started = false;
+    let advisorMode = false;   // true once the interview has finished
 
     function addBubble(text, role) {
       const d = document.createElement("div");
@@ -79,11 +88,13 @@
         removeTyping();
         sendBtn.disabled = false;
         if (data.message) addBubble(data.message, "ai");
-        if (data.done) {
-          if (disableOnDone) {
-            sendBtn.disabled = true;
-            input.disabled = true;
-          }
+
+        // `done` marks the end of the INTERVIEW — but the chat stays open so
+        // the user can keep asking the advisor follow-up questions. We only
+        // run the onDone callback (and switch the placeholder) the first time.
+        if (data.done && !advisorMode) {
+          advisorMode = true;
+          input.placeholder = advisorPlaceholder;
           if (onDoneCb) onDoneCb(data);
         }
         input.focus();

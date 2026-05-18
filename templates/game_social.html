@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Social — Nova</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/game-social.css') }}">
+</head>
+<body>
+<div class="game-wrap">
+
+  <!-- Header -->
+  <div class="game-header">
+    <a href="/dashboard?name={{ name }}" class="btn">← Dashboard</a>
+    <div class="game-title">
+      Social
+      <span class="sub">Read people, choose how to respond — there's no perfect answer</span>
+    </div>
+    <a href="/skills" class="btn ms-auto">My skills →</a>
+  </div>
+
+  <!-- Progress (dots + scene counter, filled by JS) -->
+  <div class="social-progress" id="socialProgress"></div>
+
+  <!-- Stage: scenes, then the result screen, all rendered by JS -->
+  <div class="social-stage" id="socialStage">
+    <div class="social-loading">Loading scenes…</div>
+  </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/game-social.js') }}"></script>
+</body>
+</html>
