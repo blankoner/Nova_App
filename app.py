@@ -339,7 +339,9 @@ def chat():
 @app.route("/chat-history", methods=["GET"])
 def chat_history():
     """Returns existing conversation messages for UI restoration — no reset."""
-    name = session.get("user_name", "Guest")
+    name = session.get("user_name")
+    if not name:
+        return jsonify({"messages": [], "done": False})
     user_profile = skills_mod.load_profile(name)
     chat_state = user_profile.get("chat") or {}
     done = user_profile.get("interview") is not None

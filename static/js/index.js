@@ -126,10 +126,8 @@ function handleSignup() {
   document.getElementById("inp-pass").value = "";
   document.getElementById("inp-pass2").value = "";
 
-  alert("Account created successfully! Moving to the next step...");
-  
-  // Move to chat panel
-  setStep(2);
+  // Redirect to dashboard
+  proceedToDashboard(email);
 }
 
 // ── Handle Login ─────────────────────────────────────────────────
