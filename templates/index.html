@@ -89,6 +89,31 @@
 <!-- ── RIGHT ───────────────────────────────────── -->
 <div class="right">
 
+  <!-- PANEL 0: Login -->
+  <div class="panel" id="panel-0">
+    <p class="step-tag">Account</p>
+    <h2 class="panel-title">Welcome<br>back.</h2>
+    <p class="panel-sub">Log in to continue your journey.</p>
+
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="Your password">
+    </div>
+
+    <button class="btn-primary" onclick="handleLogin()">Log in &nbsp;→</button>
+
+    <a href="/dashboard?name=Guest" class="btn-secondary">
+      Continue without an account &nbsp;→
+    </a>
+
+    <div class="divider"></div>
+    <p class="alt-link">Don't have an account? <a href="#" onclick="goToSignup(); return false;">Sign up</a></p>
+  </div>
+
   <!-- PANEL 1: Sign up -->
   <div class="panel active" id="panel-1">
     <p class="step-tag">Step 01 — Account</p>
@@ -108,14 +133,14 @@
       <input type="password" id="inp-pass2" placeholder="Type it again">
     </div>
 
-    <button class="btn-primary" onclick="goToDashboard()">Sign up &nbsp;→</button>
+    <button class="btn-primary" onclick="handleSignup()">Sign up &nbsp;→</button>
 
     <a href="/dashboard?name=Guest" class="btn-secondary">
       Continue without an account &nbsp;→
     </a>
 
     <div class="divider"></div>
-    <p class="alt-link">Already have an account? <a href="#">Log in</a></p>
+    <p class="alt-link">Already have an account? <a href="#" onclick="goToLogin(); return false;">Log in</a></p>
   </div>
 
   <!-- PANEL 2: Chat interview -->

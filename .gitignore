@@ -29,7 +29,13 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Project instructions
+CLAUDE.md
+
 # Local design ref file
 nova-design-spec.md
 
 cookies.txt
+
+# Claude Code internal data
+.claude/
