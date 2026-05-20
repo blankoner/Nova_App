@@ -430,9 +430,38 @@ def dashboard():
     session["user_name"] = name
     # Make sure a profile row exists from the first visit, so the skills page,
     # game endpoints and app-state endpoints always have something to read.
-    profile = skills_mod.load_profile(name)
-    skills_mod.save_profile(profile)
-    return render_template("dashboard.html")
+    user_profile = skills_mod.load_profile(name)
+    skills_mod.save_profile(user_profile)
+
+    # The Skills and Game views now live INSIDE the dashboard (sidebar
+    # switches between them client-side). We compute the same context the
+    # standalone /skills route would, so the Skills view can render server-
+    # side without an extra round-trip. Mirrors the /skills handler below.
+    skill_list = skills_mod.skills_for_display(user_profile)
+    has_interview = user_profile.get("interview") is not None
+    games_played = len(user_profile.get("game_history", []))
+
+    job_offers = []
+    top_job_skills = []
+    if has_interview:
+        match_input = dict(user_profile["interview"])
+        match_input["skills"] = user_profile.get("skills", {})
+        job_offers = find_top_offers(match_input, top_n=5)
+        skill_counts = Counter()
+        for offer in job_offers:
+            for skill in offer.get("skills_list", []):
+                skill_counts[skill] += 1
+        top_job_skills = [{"skill": s, "count": c} for s, c in skill_counts.most_common(25)]
+
+    return render_template(
+        "dashboard.html",
+        name=name,
+        skills=skill_list,
+        has_interview=has_interview,
+        games_played=games_played,
+        job_offers=job_offers,
+        top_job_skills=top_job_skills,
+    )
 
 
 @app.route("/wyniki")

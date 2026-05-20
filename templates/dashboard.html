@@ -11,6 +11,12 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=Poppins:wght@300;400;500;600&display=swap"
     rel="stylesheet">
+  <!-- Per-feature stylesheets first, then dashboard.css so dashboard wins on
+       conflicts (e.g. `body`, `.topbar`) but each view keeps its own specific
+       rules (.skill-card, .game-board, .jskills-cloud, …). -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/skills.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/game-strategy.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/game-social.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 </head>
 
@@ -34,7 +40,7 @@
         </svg>
         Career Assistant
       </a>
-      <a class="nav-item" id="nav-skills" href="/skills">
+      <a class="nav-item" id="nav-skills" onclick="switchView('skills')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z" />
         </svg>
@@ -71,14 +77,14 @@
         Journal Calendar
       </a>
 
-      <a class="nav-item" id="nav-game-strategy" href="/game/strategy">
+      <a class="nav-item" id="nav-game-strategy" onclick="switchView('game-strategy')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <path d="M3 11l9-8 9 8M5 10v10h14V10M9 21v-6h6v6" />
         </svg>
         Strategy Game
       </a>
 
-      <a class="nav-item" id="nav-game-social" href="/game/social">
+      <a class="nav-item" id="nav-game-social" onclick="switchView('game-social')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
           <circle cx="9" cy="7" r="4" />
@@ -288,6 +294,292 @@
           </div>
         </div>
 
+        <!-- VIEW: Skills (mirrors templates/skills.html, minus its standalone topbar) -->
+        <div class="view" id="view-skills">
+          <main class="page">
+
+            <!-- ── HERO ─────────────────────────────────────────────── -->
+            <section class="hero">
+              <p class="eyebrow">Step 04 — Skills</p>
+              <h1 class="hero-title">Your<br><em>skills.</em></h1>
+              <p class="hero-sub">
+                Hi <strong>{{ name }}</strong> — skills grow as you play Nova's mini-games.
+                {% if games_played > 0 %}
+                  You've played <strong>{{ games_played }}</strong>
+                  game{{ "s" if games_played != 1 else "" }} so far. Each one refines the levels below.
+                {% else %}
+                  Play a game to start building your profile — the bars will fill in as you go.
+                {% endif %}
+              </p>
+            </section>
+
+            <!-- ── TAB BAR ────────────────────────────────────────────── -->
+            <div class="tab-bar" role="tablist">
+              <button class="tab-btn active" data-tab="tab-my-skills" role="tab" aria-selected="true">General Skills</button>
+              <button class="tab-btn" data-tab="tab-job-skills" role="tab" aria-selected="false">Job Skills</button>
+            </div>
+
+            <!-- ── TAB: YOUR SKILLS ──────────────────────────────────── -->
+            <div id="tab-my-skills" class="tab-panel active" role="tabpanel">
+              <div class="skills-list">
+                {% for skill in skills %}
+                  {% set lvl = skill.level %}
+                  {% if lvl >= 67 %}{% set lvl_class = "high" %}
+                  {% elif lvl >= 34 %}{% set lvl_class = "mid" %}
+                  {% else %}{% set lvl_class = "low" %}{% endif %}
+
+                  <div class="skill-card">
+                    <div class="skill-body">
+                      <h2 class="skill-name">{{ skill.label }}</h2>
+                      <p class="skill-desc">{{ skill.desc }}</p>
+                      <div class="skill-bar-track">
+                        <div class="skill-bar-fill {{ lvl_class }}" style="width: {{ lvl }}%"></div>
+                      </div>
+                      <p class="skill-samples">
+                        {% if skill.samples > 0 %}
+                          {{ skill.samples }} game result{{ "s" if skill.samples != 1 else "" }}
+                        {% else %}
+                          No data yet — play a game
+                        {% endif %}
+                      </p>
+                    </div>
+
+                    <div class="skill-score">
+                      <div class="skill-level {{ lvl_class }}">{{ lvl | round | int }}<span>%</span></div>
+                      <div class="skill-level-label">level</div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+
+              <p class="footnote">Skill levels are a weighted average of your recent game performance.</p>
+            </div>
+
+            <!-- ── TAB: SKILLS FOR JOB MATCHES ──────────────────────── -->
+            <div id="tab-job-skills" class="tab-panel" role="tabpanel">
+              {% if not has_interview %}
+                <div class="empty-state">
+                  <p class="empty-eyebrow">Interview needed</p>
+                  <h3 class="empty-title">Complete the interview<br><em>first.</em></h3>
+                  <p class="empty-body">
+                    Chat with Nova on the dashboard to get personalised job matches —
+                    then come back here to see which skills they require.
+                  </p>
+                  <a href="#" onclick="switchView('interview'); return false;" class="empty-cta">Go to interview →</a>
+                </div>
+
+              {% elif not job_offers %}
+                <div class="empty-state">
+                  <p class="empty-eyebrow">No data</p>
+                  <h3 class="empty-title">Job database<br><em>not loaded.</em></h3>
+                  <p class="empty-body">
+                    Run <code>python import_data.py</code> to seed <code>jobs.db</code>,
+                    then refresh this page.
+                  </p>
+                </div>
+
+              {% else %}
+
+                <div class="jskills-layout">
+
+                  <!-- ── Main content (left column) ── -->
+                  <div class="jskills-main">
+
+                    {% if top_job_skills %}
+                      <section class="jskills-top">
+                        <h2 class="jskills-section-title">Most wanted across your matches</h2>
+                        <div class="jskills-cloud">
+                          {% for item in top_job_skills %}
+                            {% if item.count >= 3 %}{% set chip_cls = "chip-hot" %}
+                            {% elif item.count >= 2 %}{% set chip_cls = "chip-warm" %}
+                            {% else %}{% set chip_cls = "" %}{% endif %}
+                            <span class="skill-chip {{ chip_cls }}" data-skill="{{ item.skill | lower }}">{{ item.skill | title }}</span>
+                          {% endfor %}
+                        </div>
+                        <div class="jskills-cloud-footer">
+                          <span class="jskills-hint">Click to highlight · <strong style="font-weight:700;color:var(--violet)">+</strong> to learn · hover for ×</span>
+                          <button id="jskills-reset-btn" class="jskills-reset-btn" style="display:none" aria-live="polite"></button>
+                        </div>
+                      </section>
+                    {% endif %}
+
+                    <section class="jskills-breakdown">
+                      <h2 class="jskills-section-title">By job match</h2>
+                      <div class="jskills-offers">
+                        {% for offer in job_offers %}
+                          <div class="jskills-offer-card">
+                            <div class="jskills-offer-head">
+                              <div class="jskills-offer-info">
+                                <h3 class="jskills-offer-title">
+                                  {% if offer.url %}
+                                    <a href="{{ offer.url }}" target="_blank" rel="noopener">{{ offer.title }}</a>
+                                  {% else %}
+                                    {{ offer.title }}
+                                  {% endif %}
+                                </h3>
+                                <p class="jskills-offer-org">
+                                  {{ offer.company or "—" }}{% if offer.location %} · {{ offer.location }}{% endif %}
+                                </p>
+                              </div>
+                              <span class="jskills-match-pct">{{ offer.match_pct }}<small>%</small></span>
+                            </div>
+
+                            {% if offer.skills_list %}
+                              <div class="jskills-chips">
+                                {% for skill in offer.skills_list %}
+                                  <span class="skill-chip" data-skill="{{ skill | lower }}">{{ skill | title }}</span>
+                                {% endfor %}
+                              </div>
+                            {% else %}
+                              <p class="jskills-no-skills">No skills listed for this offer.</p>
+                            {% endif %}
+                          </div>
+                        {% endfor %}
+                      </div>
+                    </section>
+
+                    <p class="footnote">Data: LinkedIn job postings (2024) · Kaggle dataset by asaniczka</p>
+
+                  </div><!-- /.jskills-main -->
+
+                  <!-- ── To-learn panel (right column) ── -->
+                  <aside class="to-learn-panel" id="to-learn-panel">
+                    <div class="to-learn-header">
+                      <h2 class="to-learn-title">To learn</h2>
+                      <span class="to-learn-badge" id="to-learn-badge" hidden>0</span>
+                    </div>
+                    <p class="to-learn-prompt" id="to-learn-prompt">
+                      Click <strong>+</strong> on any skill chip to track it here.
+                    </p>
+                    <ul class="to-learn-list" id="to-learn-list" aria-label="Skills to learn"></ul>
+                  </aside>
+
+                </div><!-- /.jskills-layout -->
+
+              {% endif %}
+            </div>
+
+          </main>
+        </div>
+
+        <!-- VIEW: Strategy Game (mirrors templates/game_strategy.html, minus its standalone topbar) -->
+        <div class="view" id="view-game-strategy">
+          <div class="game-wrap">
+
+            <!-- Game intro -->
+            <div class="game-intro">
+              <p class="eyebrow">Mini-game 01 — Strategy</p>
+              <p class="game-tagline">Conquer the map — every move says something about how you think</p>
+              <button id="howToToggle" class="howto-btn" type="button">How to play</button>
+            </div>
+
+            <!-- How-to (collapsible) -->
+            <div class="howto-panel" id="howToPanel">
+              <div class="howto-inner">
+                <h3>How to play</h3>
+                <ul>
+                  <li>You (violet) face the AI (red). Neutral grey territories are up for grabs.</li>
+                  <li><strong>Attack phase:</strong> click one of your territories with 2+ armies, then click an adjacent enemy or neutral territory to attack it.</li>
+                  <li>Combat is dice-based: each side rolls one die per army, higher total wins. A territory must always leave 1 army behind.</li>
+                  <li>When you run out of moves (or want to stop), end your attack phase.</li>
+                  <li><strong>Reinforce phase:</strong> click your territories to place {{ "3" }} fresh armies, then continue.</li>
+                  <li>The AI then takes its turn. Wipe out all enemy territories to win.</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Main layout -->
+            <div class="game-layout">
+
+              <!-- Board -->
+              <div class="board-card">
+                <div class="game-board" id="gameBoard"><!-- territories injected by JS --></div>
+              </div>
+
+              <!-- Side panel -->
+              <div class="side-panel">
+
+                <div class="panel-card">
+                  <h2>Status</h2>
+                  <div class="status-grid">
+                    <div class="status-item">
+                      <span class="status-label">Round</span>
+                      <span class="status-value" id="statRound">1</span>
+                    </div>
+                    <div class="status-item">
+                      <span class="status-label">&nbsp;</span>
+                      <span class="status-value">&nbsp;</span>
+                    </div>
+                    <div class="status-item">
+                      <span class="status-label">Your land</span>
+                      <span class="status-value player" id="statPlayerTerr">3</span>
+                    </div>
+                    <div class="status-item">
+                      <span class="status-label">AI land</span>
+                      <span class="status-value ai" id="statAiTerr">3</span>
+                    </div>
+                    <div class="status-item">
+                      <span class="status-label">Your armies</span>
+                      <span class="status-value player" id="statPlayerArmies">10</span>
+                    </div>
+                    <div class="status-item">
+                      <span class="status-label">AI armies</span>
+                      <span class="status-value ai" id="statAiArmies">10</span>
+                    </div>
+                    <div class="status-phase" id="statPhase">Your attack phase</div>
+                  </div>
+                </div>
+
+                <div class="panel-card controls-card">
+                  <h2>Your turn</h2>
+                  <button class="btn btn-violet" id="endTurnBtn">End attack phase →</button>
+                </div>
+
+                <div class="panel-card">
+                  <h2>Battle log</h2>
+                  <div class="game-log" id="gameLog"><!-- log lines injected by JS --></div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Game-over overlay (position:fixed — sits above the whole viewport) -->
+          <div class="game-over-overlay" id="gameOverOverlay">
+            <div class="game-over-card">
+              <h2 id="gameOverTitle">Victory!</h2>
+              <p class="game-over-sub" id="gameOverSub"></p>
+              <div id="gameOverSkills"><!-- result bars injected by JS --></div>
+              <p class="save-note" id="saveNote">Saving your results…</p>
+              <div class="game-over-actions">
+                <button class="btn btn-violet" id="newGameBtn">Play again</button>
+                <a href="#" onclick="switchView('skills'); return false;" class="btn">View skills</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW: Social Game (mirrors templates/game_social.html, minus its standalone topbar) -->
+        <div class="view" id="view-game-social">
+          <div class="game-wrap">
+
+            <!-- Game intro -->
+            <div class="game-intro">
+              <p class="eyebrow">Mini-game 02 — Social</p>
+              <p class="game-tagline">Read people, choose how to respond — there's no perfect answer</p>
+            </div>
+
+            <!-- Progress (dots + scene counter, filled by JS) -->
+            <div class="social-progress" id="socialProgress"></div>
+
+            <!-- Stage: scenes, then the result screen, all rendered by JS -->
+            <div class="social-stage" id="socialStage">
+              <div class="social-loading">Loading scenes…</div>
+            </div>
+
+          </div>
+        </div>
+
         <!-- VIEW: Journal -->
         <div class="view" id="view-journal">
           <div class="journal-wrap">
@@ -357,6 +649,183 @@
   <script src="{{ url_for('static', filename='js/todo.js') }}"></script>
   <script src="{{ url_for('static', filename='js/pomodoro.js') }}"></script>
   <script src="{{ url_for('static', filename='js/journal.js') }}"></script>
+
+  <!-- Game scripts (each self-initialises on DOMContentLoaded, with null-checks
+       so they no-op when their elements aren't present). -->
+  <script src="{{ url_for('static', filename='js/game-strategy.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/game-social.js') }}"></script>
+
+  <!-- Inline scripts that used to live in templates/skills.html. They need
+       Jinja for `{{ name | tojson }}` and reference DOM that lives only in
+       #view-skills, so they stay inline rather than moving to a static file. -->
+  <script>
+    // ── Tab switching ────────────────────────────────────────────
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-selected', 'false');
+        });
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    // ── Job-skills chip interactivity ────────────────────────────
+    (function () {
+      const USER = {{ name | tojson }};
+      const STORE_KEY = 'nova_jskills_v1_' + USER;
+
+      function loadState() {
+        try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); }
+        catch { return {}; }
+      }
+      function saveState(s) {
+        localStorage.setItem(STORE_KEY, JSON.stringify({
+          highlighted: [...s.highlighted],
+          hidden:      [...s.hidden],
+          to_learn:    [...s.to_learn],
+        }));
+      }
+
+      const raw = loadState();
+      const state = {
+        highlighted: new Set(raw.highlighted || []),
+        hidden:      new Set(raw.hidden      || []),
+        to_learn:    new Set(raw.to_learn    || []),
+      };
+
+      const resetBtn      = document.getElementById('jskills-reset-btn');
+      const toLearnList   = document.getElementById('to-learn-list');
+      const toLearnBadge  = document.getElementById('to-learn-badge');
+      const toLearnPrompt = document.getElementById('to-learn-prompt');
+
+      function toTitleCase(sk) {
+        return sk.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      }
+
+      function renderPanel() {
+        if (!toLearnList) return;
+        const skills = [...state.to_learn];
+
+        if (toLearnBadge) {
+          toLearnBadge.textContent = skills.length;
+          toLearnBadge.hidden = skills.length === 0;
+        }
+        if (toLearnPrompt) {
+          toLearnPrompt.style.display = skills.length ? 'none' : '';
+        }
+
+        toLearnList.innerHTML = '';
+        skills.forEach(sk => {
+          const li = document.createElement('li');
+          li.className = 'to-learn-item';
+
+          const name = document.createElement('span');
+          name.className = 'to-learn-skill-name';
+          name.textContent = toTitleCase(sk);
+
+          const removeBtn = document.createElement('button');
+          removeBtn.className = 'to-learn-remove-btn';
+          removeBtn.textContent = '×';
+          removeBtn.setAttribute('aria-label', 'Remove ' + toTitleCase(sk) + ' from learning list');
+          removeBtn.addEventListener('click', () => {
+            state.to_learn.delete(sk);
+            saveState(state);
+            render();
+          });
+
+          li.appendChild(name);
+          li.appendChild(removeBtn);
+          toLearnList.appendChild(li);
+        });
+      }
+
+      function render() {
+        document.querySelectorAll('.skill-chip[data-skill]').forEach(chip => {
+          const sk = chip.dataset.skill;
+          chip.classList.toggle('chip-starred',  state.highlighted.has(sk));
+          chip.classList.toggle('chip-hidden',   state.hidden.has(sk));
+          chip.classList.toggle('chip-to-learn', state.to_learn.has(sk));
+
+          const addBtn = chip.querySelector('.chip-add-btn');
+          if (addBtn) {
+            const inLearn = state.to_learn.has(sk);
+            addBtn.textContent = inLearn ? '✓' : '+';
+            addBtn.setAttribute('aria-label', inLearn ? 'Remove from learning list' : 'Add to learning list');
+          }
+        });
+
+        if (resetBtn) {
+          const n = state.hidden.size;
+          resetBtn.textContent = n ? 'Show hidden (' + n + ')' : '';
+          resetBtn.style.display = n ? 'inline-flex' : 'none';
+        }
+
+        renderPanel();
+      }
+
+      document.querySelectorAll('.skill-chip[data-skill]').forEach(chip => {
+        // + add-to-learn button — injected once, sits left of ×
+        const addBtn = document.createElement('button');
+        addBtn.className = 'chip-add-btn';
+        addBtn.textContent = '+';
+        addBtn.setAttribute('aria-label', 'Add to learning list');
+        addBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          const sk = chip.dataset.skill;
+          if (state.to_learn.has(sk)) {
+            state.to_learn.delete(sk);
+          } else {
+            state.to_learn.add(sk);
+          }
+          saveState(state);
+          render();
+        });
+        chip.appendChild(addBtn);
+
+        // × dismiss button — injected once
+        const xBtn = document.createElement('button');
+        xBtn.className = 'chip-remove-btn';
+        xBtn.textContent = '×';
+        xBtn.setAttribute('aria-label', 'Hide this skill');
+        xBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          const sk = chip.dataset.skill;
+          state.hidden.add(sk);
+          state.highlighted.delete(sk);
+          state.to_learn.delete(sk);
+          saveState(state);
+          render();
+        });
+        chip.appendChild(xBtn);
+
+        // click body = toggle highlight
+        chip.addEventListener('click', () => {
+          const sk = chip.dataset.skill;
+          if (state.highlighted.has(sk)) {
+            state.highlighted.delete(sk);
+          } else {
+            state.highlighted.add(sk);
+          }
+          saveState(state);
+          render();
+        });
+      });
+
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          state.hidden.clear();
+          saveState(state);
+          render();
+        });
+      }
+
+      render();
+    })();
+  </script>
 </body>
 
 </html>

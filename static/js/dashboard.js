@@ -16,11 +16,14 @@
 
 // ── View switching ───────────────────────────────────────────────
 const viewMeta = {
-  interview: { title: "Career Interview",  sub: "Answer a few questions to find your path" },
-  todo:      { title: "To-Do List",        sub: "Track your career exploration tasks" },
-  matches:   { title: "My Matches",        sub: "Jobs and schools matched to your profile" },
-  pomodoro:  { title: "Pomodoro Timer",    sub: "Stay focused — work in sprints, rest between" },
-  journal:   { title: "Learning Journal",  sub: "Reflect on what you learned each day" },
+  interview:       { title: "Career Interview",  sub: "Answer a few questions to find your path" },
+  todo:            { title: "To-Do List",        sub: "Track your career exploration tasks" },
+  matches:         { title: "My Matches",        sub: "Jobs and schools matched to your profile" },
+  pomodoro:        { title: "Pomodoro Timer",    sub: "Stay focused — work in sprints, rest between" },
+  journal:         { title: "Learning Journal",  sub: "Reflect on what you learned each day" },
+  skills:          { title: "Skills",            sub: "Your skill levels and what jobs need" },
+  "game-strategy": { title: "Strategy Game",     sub: "Conquer the map — a Risk-style mini-game" },
+  "game-social":   { title: "Social Game",       sub: "Read people, choose how to respond" },
 };
 
 function switchView(name) {
