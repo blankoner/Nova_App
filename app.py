@@ -1,6 +1,7 @@
 import os
 import re
 import json
+from collections import Counter
 from flask import Flask, render_template, request, session, jsonify
 from dotenv import load_dotenv
 from groq import Groq
@@ -443,12 +444,27 @@ def skills_page():
     skill_list = skills_mod.skills_for_display(user_profile)
     has_interview = user_profile.get("interview") is not None
     games_played = len(user_profile.get("game_history", []))
+
+    job_offers = []
+    top_job_skills = []
+    if has_interview:
+        match_input = dict(user_profile["interview"])
+        match_input["skills"] = user_profile.get("skills", {})
+        job_offers = find_top_offers(match_input, top_n=5)
+        skill_counts = Counter()
+        for offer in job_offers:
+            for skill in offer.get("skills_list", []):
+                skill_counts[skill] += 1
+        top_job_skills = [{"skill": s, "count": c} for s, c in skill_counts.most_common(25)]
+
     return render_template(
         "skills.html",
         skills=skill_list,
         name=name,
         has_interview=has_interview,
         games_played=games_played,
+        job_offers=job_offers,
+        top_job_skills=top_job_skills,
     )
 
 

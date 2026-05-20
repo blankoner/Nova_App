@@ -48,40 +48,141 @@
     </p>
   </section>
 
-  <!-- ── SKILL LIST ─────────────────────────────────────────── -->
-  <div class="skills-list">
-    {% for skill in skills %}
-      {% set lvl = skill.level %}
-      {% if lvl >= 67 %}{% set lvl_class = "high" %}
-      {% elif lvl >= 34 %}{% set lvl_class = "mid" %}
-      {% else %}{% set lvl_class = "low" %}{% endif %}
-
-      <div class="skill-card">
-        <div class="skill-body">
-          <h2 class="skill-name">{{ skill.label }}</h2>
-          <p class="skill-desc">{{ skill.desc }}</p>
-          <div class="skill-bar-track">
-            <div class="skill-bar-fill {{ lvl_class }}" style="width: {{ lvl }}%"></div>
-          </div>
-          <p class="skill-samples">
-            {% if skill.samples > 0 %}
-              {{ skill.samples }} game result{{ "s" if skill.samples != 1 else "" }}
-            {% else %}
-              No data yet — play a game
-            {% endif %}
-          </p>
-        </div>
-
-        <div class="skill-score">
-          <div class="skill-level {{ lvl_class }}">{{ lvl | round | int }}<span>%</span></div>
-          <div class="skill-level-label">level</div>
-        </div>
-      </div>
-    {% endfor %}
+  <!-- ── TAB BAR ────────────────────────────────────────────── -->
+  <div class="tab-bar" role="tablist">
+    <button class="tab-btn active" data-tab="tab-my-skills" role="tab" aria-selected="true">General Skills</button>
+    <button class="tab-btn" data-tab="tab-job-skills" role="tab" aria-selected="false">Job Skills</button>
   </div>
 
-  <p class="footnote">Skill levels are a weighted average of your recent game performance.</p>
+  <!-- ── TAB: YOUR SKILLS ──────────────────────────────────── -->
+  <div id="tab-my-skills" class="tab-panel active" role="tabpanel">
+    <div class="skills-list">
+      {% for skill in skills %}
+        {% set lvl = skill.level %}
+        {% if lvl >= 67 %}{% set lvl_class = "high" %}
+        {% elif lvl >= 34 %}{% set lvl_class = "mid" %}
+        {% else %}{% set lvl_class = "low" %}{% endif %}
+
+        <div class="skill-card">
+          <div class="skill-body">
+            <h2 class="skill-name">{{ skill.label }}</h2>
+            <p class="skill-desc">{{ skill.desc }}</p>
+            <div class="skill-bar-track">
+              <div class="skill-bar-fill {{ lvl_class }}" style="width: {{ lvl }}%"></div>
+            </div>
+            <p class="skill-samples">
+              {% if skill.samples > 0 %}
+                {{ skill.samples }} game result{{ "s" if skill.samples != 1 else "" }}
+              {% else %}
+                No data yet — play a game
+              {% endif %}
+            </p>
+          </div>
+
+          <div class="skill-score">
+            <div class="skill-level {{ lvl_class }}">{{ lvl | round | int }}<span>%</span></div>
+            <div class="skill-level-label">level</div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <p class="footnote">Skill levels are a weighted average of your recent game performance.</p>
+  </div>
+
+  <!-- ── TAB: SKILLS FOR JOB MATCHES ──────────────────────── -->
+  <div id="tab-job-skills" class="tab-panel" role="tabpanel">
+    {% if not has_interview %}
+      <div class="empty-state">
+        <p class="empty-eyebrow">Interview needed</p>
+        <h3 class="empty-title">Complete the interview<br><em>first.</em></h3>
+        <p class="empty-body">
+          Chat with Nova on the dashboard to get personalised job matches —
+          then come back here to see which skills they require.
+        </p>
+        <a href="/dashboard?name={{ name }}" class="empty-cta">Go to dashboard →</a>
+      </div>
+
+    {% elif not job_offers %}
+      <div class="empty-state">
+        <p class="empty-eyebrow">No data</p>
+        <h3 class="empty-title">Job database<br><em>not loaded.</em></h3>
+        <p class="empty-body">
+          Run <code>python import_data.py</code> to seed <code>jobs.db</code>,
+          then refresh this page.
+        </p>
+      </div>
+
+    {% else %}
+
+      {% if top_job_skills %}
+        <section class="jskills-top">
+          <h2 class="jskills-section-title">Most wanted across your matches</h2>
+          <div class="jskills-cloud">
+            {% for item in top_job_skills %}
+              {% if item.count >= 3 %}{% set chip_cls = "chip-hot" %}
+              {% elif item.count >= 2 %}{% set chip_cls = "chip-warm" %}
+              {% else %}{% set chip_cls = "" %}{% endif %}
+              <span class="skill-chip {{ chip_cls }}">{{ item.skill | title }}</span>
+            {% endfor %}
+          </div>
+        </section>
+      {% endif %}
+
+      <section class="jskills-breakdown">
+        <h2 class="jskills-section-title">By job match</h2>
+        <div class="jskills-offers">
+          {% for offer in job_offers %}
+            <div class="jskills-offer-card">
+              <div class="jskills-offer-head">
+                <div class="jskills-offer-info">
+                  <h3 class="jskills-offer-title">
+                    {% if offer.url %}
+                      <a href="{{ offer.url }}" target="_blank" rel="noopener">{{ offer.title }}</a>
+                    {% else %}
+                      {{ offer.title }}
+                    {% endif %}
+                  </h3>
+                  <p class="jskills-offer-org">
+                    {{ offer.company or "—" }}{% if offer.location %} · {{ offer.location }}{% endif %}
+                  </p>
+                </div>
+                <span class="jskills-match-pct">{{ offer.match_pct }}<small>%</small></span>
+              </div>
+
+              {% if offer.skills_list %}
+                <div class="jskills-chips">
+                  {% for skill in offer.skills_list %}
+                    <span class="skill-chip">{{ skill | title }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p class="jskills-no-skills">No skills listed for this offer.</p>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <p class="footnote">Data: LinkedIn job postings (2024) · Kaggle dataset by asaniczka</p>
+    {% endif %}
+  </div>
+
 </main>
 
+<script>
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+</script>
 </body>
 </html>

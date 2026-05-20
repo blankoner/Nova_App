@@ -254,3 +254,237 @@ a { color: inherit; text-decoration: none; }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============================================================
+   TABS
+   ============================================================ */
+
+.tab-bar {
+  display: flex;
+  gap: 0;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid var(--rule);
+}
+
+.tab-btn {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: none;
+  border: none;
+  padding: 0.65rem 1.2rem 0.75rem;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s var(--ease);
+}
+.tab-btn::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--violet);
+  transform: scaleX(0);
+  transition: transform 0.22s var(--ease);
+  border-radius: 2px 2px 0 0;
+}
+.tab-btn:hover { color: var(--ink-2); }
+.tab-btn.active { color: var(--violet); }
+.tab-btn.active::after { transform: scaleX(1); }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ============================================================
+   JOB SKILLS TAB — SECTION TITLE
+   ============================================================ */
+
+.jskills-section-title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 1rem;
+}
+
+/* ── Top skills cloud ── */
+
+.jskills-top {
+  margin-bottom: 2.5rem;
+}
+
+.jskills-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+/* ── Skill chips ── */
+
+.skill-chip {
+  display: inline-block;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 400;
+  color: var(--ink-2);
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 99px;
+  padding: 0.28rem 0.75rem;
+  line-height: 1.5;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+.skill-chip.chip-warm {
+  color: var(--violet);
+  background: var(--violet-tint);
+  border-color: var(--violet-soft);
+}
+.skill-chip.chip-hot {
+  color: var(--surface);
+  background: var(--violet);
+  border-color: var(--violet);
+  font-weight: 500;
+}
+
+/* ── Per-offer breakdown ── */
+
+.jskills-breakdown {
+  margin-bottom: 2.5rem;
+}
+
+.jskills-offers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.jskills-offer-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 1.2rem 1.4rem;
+  transition: box-shadow 0.25s var(--ease), border-color 0.25s var(--ease);
+  animation: card-in 0.4s var(--ease) both;
+}
+.jskills-offer-card:hover {
+  border-color: var(--rule-strong);
+  box-shadow: 0 8px 32px -16px rgba(124,58,237,0.22);
+}
+
+.jskills-offer-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.jskills-offer-info { flex: 1; min-width: 0; }
+
+.jskills-offer-title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 0.98rem;
+  color: var(--ink);
+  margin-bottom: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.jskills-offer-title a { color: inherit; }
+.jskills-offer-title a:hover { color: var(--violet); }
+
+.jskills-offer-org {
+  font-size: 0.8rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jskills-match-pct {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.55rem;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  color: var(--violet);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.jskills-match-pct small {
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 600;
+  margin-left: 1px;
+}
+
+.jskills-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.jskills-no-skills {
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ── Empty state ── */
+
+.empty-state {
+  text-align: center;
+  padding: 3.5rem 1rem 2rem;
+}
+.empty-eyebrow {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.9rem;
+}
+.empty-title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  color: var(--ink);
+  margin-bottom: 1rem;
+}
+.empty-title em { font-style: italic; color: var(--violet); }
+.empty-body {
+  font-size: 0.92rem;
+  color: var(--ink-2);
+  max-width: 400px;
+  margin: 0 auto 1.5rem;
+  line-height: 1.6;
+}
+.empty-body code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85em;
+  background: var(--paper-2);
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+}
+.empty-cta {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--violet);
+  transition: opacity 0.2s;
+}
+.empty-cta:hover { opacity: 0.65; }

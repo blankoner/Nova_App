@@ -238,8 +238,8 @@ def find_top_offers(profile: dict, top_n: int = 5) -> list[dict]:
     max_score = top[0]["score"] if top and top[0]["score"] > 0 else 1
     for offer in top:
         offer["match_pct"] = min(100, round(offer["score"] / max_score * 100))
-        # Clean up fields for template
-        offer.pop("skills_raw", None)
+        raw = offer.pop("skills_raw", "") or ""
+        offer["skills_list"] = [s.strip() for s in raw.split(",") if s.strip()][:20]
         offer.pop("score", None)
 
     return top
