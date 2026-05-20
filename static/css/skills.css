@@ -357,7 +357,7 @@ a { color: inherit; text-decoration: none; }
 .skill-chip[data-skill] {
   position: relative;
   cursor: pointer;
-  padding-right: 1.5rem;
+  padding-right: 2.9rem;   /* room for + (learn) and × (hide) buttons */
   user-select: none;
 }
 
@@ -381,6 +381,36 @@ a { color: inherit; text-decoration: none; }
 }
 .chip-remove-btn:hover {
   color: var(--ink) !important;
+}
+
+/* ── + add-to-learn button (left of ×) ── */
+
+.chip-add-btn {
+  position: absolute;
+  right: 1.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  color: transparent;
+  transition: color 0.15s;
+  pointer-events: auto;
+}
+.skill-chip[data-skill]:hover .chip-add-btn { color: var(--muted); }
+.chip-add-btn:hover { color: var(--violet) !important; }
+
+/* When this skill is already in the to-learn list */
+.skill-chip.chip-to-learn .chip-add-btn {
+  color: var(--violet) !important;
+}
+.skill-chip.chip-to-learn {
+  border-color: rgba(124, 58, 237, 0.4) !important;
+  box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.12);
 }
 
 /* Highlighted / starred state */
@@ -572,3 +602,126 @@ a { color: inherit; text-decoration: none; }
   transition: opacity 0.2s;
 }
 .empty-cta:hover { opacity: 0.65; }
+
+/* ============================================================
+   JOB SKILLS — TWO-COLUMN LAYOUT
+   ============================================================ */
+
+.jskills-layout {
+  display: grid;
+  grid-template-columns: 1fr 236px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.jskills-main { min-width: 0; }
+
+/* ============================================================
+   TO-LEARN PANEL
+   ============================================================ */
+
+.to-learn-panel {
+  position: sticky;
+  top: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  padding: 1.25rem 1.1rem;
+}
+
+.to-learn-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.to-learn-title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  flex: 1;
+}
+
+.to-learn-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: var(--violet);
+  color: #fff;
+  border-radius: 99px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 0.35rem;
+}
+
+.to-learn-prompt {
+  font-size: 0.76rem;
+  color: var(--muted);
+  line-height: 1.55;
+  margin-bottom: 0.6rem;
+}
+
+.to-learn-prompt strong {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  color: var(--violet);
+}
+
+.to-learn-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.to-learn-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.55rem;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  animation: card-in 0.22s var(--ease) both;
+}
+
+.to-learn-skill-name {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--ink);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.to-learn-remove-btn {
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  line-height: 1;
+  padding: 0 2px;
+  cursor: pointer;
+  color: var(--muted);
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+.to-learn-remove-btn:hover { color: var(--ink); }
+
+@media (max-width: 680px) {
+  .jskills-layout {
+    grid-template-columns: 1fr;
+  }
+  .to-learn-panel {
+    position: static;
+    order: -1;
+  }
+}
