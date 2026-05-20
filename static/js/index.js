@@ -1,31 +1,23 @@
 /**
- * index.js — landing page step navigation + authentication + chat bootstrap.
- * Features: Local signup/login with localStorage persistence, auto-login on refresh.
- * Depends on: chat.js (loaded first)
+ * index.js — landing page signup/login logic with localStorage persistence.
+ * Depends on: chat.js only when chat elements are present.
  */
 
-// ── Authentication Storage ─────────────────────────────────────────
 const AUTH_KEY = "novaUserAuth";
 
-/**
- * Simple hash function for passwords (client-side only - not cryptographically secure)
- * In production, use server-side hashing!
- */
 function simpleHash(str) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
+    hash = hash & hash;
   }
   return Math.abs(hash).toString(16);
 }
 
-/**
- * Save user credentials to localStorage
- */
-function saveCredentials(email, password) {
+function saveCredentials(name, email, password) {
   const userData = {
+    name: name || "",
     email: email,
     passwordHash: simpleHash(password),
     createdAt: new Date().toISOString()
@@ -33,66 +25,54 @@ function saveCredentials(email, password) {
   localStorage.setItem(AUTH_KEY, JSON.stringify(userData));
 }
 
-/**
- * Get stored user credentials
- */
 function getStoredCredentials() {
   const stored = localStorage.getItem(AUTH_KEY);
   return stored ? JSON.parse(stored) : null;
 }
 
-/**
- * Validate login against stored credentials
- */
 function validateCredentials(email, password) {
   const stored = getStoredCredentials();
   if (!stored) return false;
   return stored.email === email && stored.passwordHash === simpleHash(password);
 }
 
-/**
- * Clear stored credentials (logout)
- */
 function clearCredentials() {
   localStorage.removeItem(AUTH_KEY);
 }
 
-/**
- * Proceed to dashboard with authenticated user
- */
+function getDisplayName(email) {
+  const stored = getStoredCredentials();
+  return stored && stored.email === email && stored.name ? stored.name : email.split("@")[0];
+}
+
 function proceedToDashboard(email) {
-  const name = email.split("@")[0];
+  const name = getDisplayName(email);
   window.location.href = "/dashboard?name=" + encodeURIComponent(name);
 }
 
-// ── Step nav ─────────────────────────────────────────────────────
-function setStep(n) {
-  document.querySelectorAll(".panel").forEach((p, i) => {
-    p.classList.toggle("active", i === n);
-  });
-  document.querySelectorAll(".step").forEach((s, i) => {
-    s.classList.toggle("active", i + 1 <= n);
-  });
+function showSignup() {
+  document.querySelector(".signup-panel").classList.add("active");
+  document.querySelector(".login-panel").classList.remove("active");
+  const input = document.getElementById("inp-name");
+  if (input) input.focus();
 }
 
-// ── Navigation between panels ────────────────────────────────────
-function goToLogin() {
-  setStep(0);
-  document.getElementById("login-email").focus();
+function showLogin() {
+  document.querySelector(".login-panel").classList.add("active");
+  document.querySelector(".signup-panel").classList.remove("active");
+  const input = document.getElementById("login-email");
+  if (input) input.focus();
 }
 
-function goToSignup() {
-  setStep(1);
-  document.getElementById("inp-email").focus();
-}
-
-// ── Handle Signup ────────────────────────────────────────────────
 function handleSignup() {
+  const name  = document.getElementById("inp-name").value.trim();
   const email = document.getElementById("inp-email").value.trim();
   const pass  = document.getElementById("inp-pass").value;
-  const pass2 = document.getElementById("inp-pass2").value;
 
-  // Validation
+  if (!name) {
+    alert("Please enter your full name.");
+    return;
+  }
   if (!email) {
     alert("Please enter an email address.");
     return;
@@ -105,32 +85,21 @@ function handleSignup() {
     alert("Password must be at least 8 characters.");
     return;
   }
-  if (pass !== pass2) {
-    alert("Passwords do not match.");
-    return;
-  }
 
-  // Check if account already exists
   const stored = getStoredCredentials();
   if (stored && stored.email === email) {
     alert("An account with this email already exists. Please log in instead.");
-    goToLogin();
+    showLogin();
     return;
   }
 
-  // Save credentials to localStorage
-  saveCredentials(email, pass);
-  
-  // Clear form
+  saveCredentials(name, email, pass);
+  document.getElementById("inp-name").value = "";
   document.getElementById("inp-email").value = "";
   document.getElementById("inp-pass").value = "";
-  document.getElementById("inp-pass2").value = "";
-
-  // Redirect to dashboard
   proceedToDashboard(email);
 }
 
-// ── Handle Login ─────────────────────────────────────────────────
 function handleLogin() {
   const email = document.getElementById("login-email").value.trim();
   const pass  = document.getElementById("login-pass").value;
@@ -145,59 +114,42 @@ function handleLogin() {
     return;
   }
 
-  // Clear form
-  document.getElementById("login-email").value = "";
   document.getElementById("login-pass").value = "";
-
-  // Proceed to dashboard
   proceedToDashboard(email);
 }
 
-// ── Auto-login on page load ──────────────────────────────────────
 function checkAutoLogin() {
   const stored = getStoredCredentials();
   if (stored) {
-    // User has stored credentials - show login panel
     document.getElementById("login-email").value = stored.email;
-    setStep(0); // Show login panel
+    showLogin();
   } else {
-    // No stored credentials - show signup panel
-    setStep(1);
+    showSignup();
   }
 }
 
-// ── Panel 1 → Dashboard (deprecated, kept for backward-compat) ────
-function goToDashboard() {
-  handleSignup();
-}
-
-// Backward-compat alias
-function goToChat() { handleSignup(); }
-
-// Expose to inline onclick handlers
-window.setStep = setStep;
-window.goToDashboard = goToDashboard;
-window.goToChat = goToChat;
 window.handleSignup = handleSignup;
 window.handleLogin = handleLogin;
-window.goToLogin = goToLogin;
-window.goToSignup = goToSignup;
+window.showLogin = showLogin;
+window.showSignup = showSignup;
 window.clearCredentials = clearCredentials;
 
-// ── Chat bootstrap ───────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-  // Check for stored credentials and show appropriate panel
   checkAutoLogin();
 
-  const chat = window.Nova.createChat({
-    chatBoxId: "chatBox",
-    inputId: "userInput",
-    sendBtnId: "sendBtn",
-    // On the landing page we move the user straight to the "all set" panel
-    // when the interview ends; the advisor follow-up chat lives in the dashboard.
-    onDone: () => {
-      setTimeout(() => setStep(3), 800);
-    }
-  });
-  chat.start();
+  const chatBox = document.getElementById("chatBox");
+  if (chatBox && window.Nova && typeof window.Nova.createChat === "function") {
+    const chat = window.Nova.createChat({
+      chatBoxId: "chatBox",
+      inputId: "userInput",
+      sendBtnId: "sendBtn",
+      onDone: () => {
+        setTimeout(() => {
+          const stepPanels = document.querySelectorAll(".panel");
+          stepPanels.forEach((panel, index) => panel.classList.toggle("active", index === 3));
+        }, 800);
+      }
+    });
+    chat.start();
+  }
 });

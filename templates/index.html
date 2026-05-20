@@ -11,192 +11,58 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
 <body>
+  <div class="auth-shell">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2 L13.6 10.8 L22 12.4 L13.6 14 L12 22 L10.4 14 L2 12.4 L10.4 10.8 Z"/>
+          </svg>
+        </div>
+        <div class="brand-copy">
+          <p class="brand-eyebrow">NOVA</p>
+          <h1 class="brand-title">Find your path.</h1>
+        </div>
+      </div>
 
-<!-- ── LEFT ────────────────────────────────────── -->
-<div class="left">
-  <!-- Big polar-star glow sitting behind all content.
-       Two layers: a soft atmospheric halo + a 7-stop tonal star body
-       with feathered edges, so the star reads as a light source rather
-       than a geometric sticker. -->
-  <svg class="star-glow" viewBox="-20 -20 240 240" aria-hidden="true" focusable="false">
-    <defs>
-      <!-- Atmospheric halo: continues the star's outer hues outward into the panel -->
-      <radialGradient id="haloGrad" cx="50%" cy="50%" r="50%">
-        <stop offset="0%"   stop-color="#C4B5FD" stop-opacity="0.36"/>
-        <stop offset="30%"  stop-color="#DDD6FE" stop-opacity="0.22"/>
-        <stop offset="60%"  stop-color="#F3EDFF" stop-opacity="0.10"/>
-        <stop offset="85%"  stop-color="#FAFAFF" stop-opacity="0.03"/>
-        <stop offset="100%" stop-color="#7C3AED" stop-opacity="0"/>
-      </radialGradient>
+      <div class="form-panel signup-panel active">
+        <div class="input-field">
+          <input type="text" id="inp-name" placeholder="Full Name">
+        </div>
+        <div class="input-field">
+          <input type="email" id="inp-email" placeholder="Email">
+        </div>
+        <div class="input-field">
+          <input type="password" id="inp-pass" placeholder="Password">
+        </div>
+        <button class="btn-primary" onclick="handleSignup()">Sign Up</button>
 
-      <!-- Star body: violet core → lavender → near-white, on a smooth alpha curve -->
-      <radialGradient id="starGrad" cx="50%" cy="50%" r="50%">
-        <stop offset="0%"   stop-color="#8B5CF6" stop-opacity="0.95"/>
-        <stop offset="12%"  stop-color="#A78BFA" stop-opacity="0.88"/>
-        <stop offset="28%"  stop-color="#C4B5FD" stop-opacity="0.74"/>
-        <stop offset="48%"  stop-color="#DDD6FE" stop-opacity="0.56"/>
-        <stop offset="66%"  stop-color="#EDE9FE" stop-opacity="0.36"/>
-        <stop offset="84%"  stop-color="#F5F3FF" stop-opacity="0.16"/>
-        <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
-      </radialGradient>
+        <div class="or-line">or continue with</div>
 
-      <!-- Mild gaussian feather: softens the 8 vertices into the panel -->
-      <filter id="starFeather" x="-20%" y="-20%" width="140%" height="140%">
-        <feGaussianBlur stdDeviation="1.6"/>
-      </filter>
-    </defs>
+        <div class="social-row">
+          <button type="button" class="social-btn" aria-label="Continue with Google">G</button>
+          <button type="button" class="social-btn" aria-label="Continue with Apple"></button>
+          <button type="button" class="social-btn" aria-label="Continue with Discord">D</button>
+        </div>
 
-    <!-- Atmospheric halo, drawn first so the star sits on top -->
-    <circle cx="100" cy="100" r="110" fill="url(#haloGrad)"/>
+        <p class="login-line">Already have an account? <a href="#" onclick="showLogin(); return false;">Log in</a></p>
+      </div>
 
-    <!-- North star with feathered edges -->
-    <path
-      d="M100 6 L114 86 L194 100 L114 114 L100 194 L86 114 L6 100 L86 86 Z"
-      fill="url(#starGrad)"
-      filter="url(#starFeather)"
-    />
-  </svg>
+      <div class="form-panel login-panel">
+        <div class="input-field">
+          <input type="email" id="login-email" placeholder="Email">
+        </div>
+        <div class="input-field">
+          <input type="password" id="login-pass" placeholder="Password">
+        </div>
+        <button class="btn-primary" onclick="handleLogin()">Log In</button>
 
-  <div class="logo">
-    <svg class="logo-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
-      <path d="M12 0 L13.6 9.4 L23 11 L13.6 12.6 L12 22 L10.4 12.6 L1 11 L10.4 9.4 Z"/>
-    </svg>
-    Nova
-  </div>
-
-  <div class="left-body">
-    <p class="eyebrow">A career compass for students</p>
-    <h1 class="headline">Find your<br><em>path.</em></h1>
-    <p class="subline">Discover the studies and careers that match who you are — through short interviews, playful tests, and real-world matches.</p>
-  </div>
-
-  <div class="steps">
-    <div class="step active" id="step-dot-1">
-      <span class="step-num">01</span>
-      <span class="step-label">Create your account</span>
-    </div>
-    <div class="step" id="step-dot-2">
-      <span class="step-num">02</span>
-      <span class="step-label">Tell us about you</span>
-    </div>
-    <div class="step" id="step-dot-3">
-      <span class="step-num">03</span>
-      <span class="step-label">See your matches</span>
-    </div>
-  </div>
-</div>
-
-<!-- ── RIGHT ───────────────────────────────────── -->
-<div class="right">
-
-  <!-- PANEL 0: Login -->
-  <div class="panel" id="panel-0">
-    <p class="step-tag">Account</p>
-    <h2 class="panel-title">Welcome<br>back.</h2>
-    <p class="panel-sub">Log in to continue your journey.</p>
-
-    <div class="field">
-      <label>Email</label>
-      <input type="email" id="login-email" placeholder="you@example.com">
-    </div>
-    <div class="field">
-      <label>Password</label>
-      <input type="password" id="login-pass" placeholder="Your password">
-    </div>
-
-    <button class="btn-primary" onclick="handleLogin()">Log in &nbsp;→</button>
-
-    <a href="/dashboard?name=Guest" class="btn-secondary">
-      Continue without an account &nbsp;→
-    </a>
-
-    <div class="divider"></div>
-    <p class="alt-link">Don't have an account? <a href="#" onclick="goToSignup(); return false;">Sign up</a></p>
-  </div>
-
-  <!-- PANEL 1: Sign up -->
-  <div class="panel active" id="panel-1">
-    <p class="step-tag">Step 01 — Account</p>
-    <h2 class="panel-title">Create your<br>account.</h2>
-    <p class="panel-sub">Let's get you set up. It takes about two minutes.</p>
-
-    <div class="field">
-      <label>Email</label>
-      <input type="email" id="inp-email" placeholder="you@example.com">
-    </div>
-    <div class="field">
-      <label>Password</label>
-      <input type="password" id="inp-pass" placeholder="At least 8 characters">
-    </div>
-    <div class="field">
-      <label>Confirm password</label>
-      <input type="password" id="inp-pass2" placeholder="Type it again">
-    </div>
-
-    <button class="btn-primary" onclick="handleSignup()">Sign up &nbsp;→</button>
-
-    <a href="/dashboard?name=Guest" class="btn-secondary">
-      Continue without an account &nbsp;→
-    </a>
-
-    <div class="divider"></div>
-    <p class="alt-link">Already have an account? <a href="#" onclick="goToLogin(); return false;">Log in</a></p>
-  </div>
-
-  <!-- PANEL 2: Chat interview -->
-  <div class="panel" id="panel-2">
-    <p class="step-tag">Step 02 — Interview</p>
-    <h2 class="panel-title">Tell us<br>about you.</h2>
-    <p class="panel-sub">A short, friendly conversation. Answer in your own words.</p>
-
-    <div class="chat-meta">
-      <span class="chat-meta-label"><span class="chat-meta-dot"></span>Nova is listening</span>
-      <span class="chat-meta-hint">Press <kbd>Enter</kbd> to send</span>
-    </div>
-
-    <div class="chat-scroll" id="chatBox"></div>
-
-    <div class="chat-input-row">
-      <input type="text" id="userInput" placeholder="Type your answer…" autocomplete="off">
-      <button class="btn-icon" id="sendBtn">
-        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
-      </button>
+        <p class="login-line">New here? <a href="#" onclick="showSignup(); return false;">Create account</a></p>
+      </div>
     </div>
   </div>
 
-  <!-- PANEL 3: Done / redirect -->
-  <div class="panel" id="panel-3">
-    <p class="step-tag">Step 03 — Matches</p>
-    <h2 class="panel-title">You're all<br><em>set.</em></h2>
-    <p class="panel-sub">Thanks for sharing. Here's what comes next.</p>
-
-    <ol class="next-list">
-      <li>
-        <span class="next-num">01</span>
-        <span class="next-text">See your top job matches
-          <small>Ranked roles based on your interests & strengths</small>
-        </span>
-      </li>
-      <li>
-        <span class="next-num">02</span>
-        <span class="next-text">Explore your dashboard
-          <small>Journal, pomodoro and a to-do list to keep going</small>
-        </span>
-      </li>
-      <li>
-        <span class="next-num">03</span>
-        <span class="next-text">Come back anytime
-          <small>Update your answers as you learn more about yourself</small>
-        </span>
-      </li>
-    </ol>
-
-    <a href="/wyniki" class="btn-primary btn-violet">See your matches &nbsp;→</a>
-  </div>
-
-</div>
-
-<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
-<script src="{{ url_for('static', filename='js/index.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
 </html>
