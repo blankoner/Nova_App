@@ -209,6 +209,79 @@ button { font-family: inherit; cursor: pointer; }
   to   { opacity: 1; transform: none; }
 }
 
+/* ── Embedded game views — override the standalone .game-wrap caps ──
+   game-strategy.css and game-social.css each set `.game-wrap { max-width:
+   1080px; margin: 0 auto; padding: clamp(...) }` because they were designed
+   as standalone full-screen pages. Inside the dashboard the sidebar already
+   eats horizontal space, so the cap leaves the Strategy board cramped
+   (~390px wide after the 290px side panel). Strip the cap and let the
+   game fill `.content` — the board uses aspect-ratio so it scales sanely. */
+#view-game-strategy .game-wrap,
+#view-game-social   .game-wrap {
+  max-width: none;
+  /* min-width: 100%; */
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Strategy game: bigger territory circles ──────────────────────────
+   Standalone game-strategy.css sized territories at 64×64 (legible at the
+   page's 1080px max-width). Now that the embedded view fills the full
+   content width, the board is much larger, so the circles need to grow
+   proportionally — otherwise they look like dots and the army counts cramp. */
+#view-game-strategy .territory {
+  width: 88px;
+  height: 88px;
+  border-width: 3px;
+}
+#view-game-strategy .terr-name {
+  font-size: 0.66rem;
+}
+#view-game-strategy .terr-armies {
+  font-size: 1.4rem;
+}
+
+/* ── Social game: dark-mode adaptation ─────────────────────────────────
+   game-social.css's :root defines its own light palette. dashboard.css's
+   dark-mode :root override touches --surface/--ink/--rule etc. — but NOT
+   --bg, --white, --border. Anywhere the social game uses those literals
+   stays light on top of the dark dashboard. Patch the visible offenders. */
+
+/* Scene-person card (background: var(--bg) → would be #FBFAFF). */
+#view-game-social .scene-person-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--rule);
+}
+
+/* Avatar — head stays near-white as a "presence" disk against the dark card,
+   but the eyes/mouth were styled with var(--ink-2) which is now light, so
+   they'd vanish against a white head. Force them to a dark stroke. */
+#view-game-social .avatar-eye  { fill: #1F2937; }
+#view-game-social .avatar-mouth { stroke: #1F2937; }
+
+/* .btn — base style uses var(--white) bg + var(--ink-2) text (now both
+   light → unreadable). Restyle as a subtle dark-mode ghost button. The
+   solid violet variant (.btn-violet) stays untouched and reads fine. */
+#view-game-social .btn:not(.btn-violet),
+#view-game-strategy .btn:not(.btn-violet) {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink);
+  border-color: var(--rule);
+}
+#view-game-social .btn:not(.btn-violet):hover,
+#view-game-strategy .btn:not(.btn-violet):hover {
+  background: rgba(168, 85, 247, 0.12);
+  border-color: var(--violet);
+}
+
+/* Progress dots + result bar tracks both used var(--border) (light) — they'd
+   nearly match a white dot in the dark theme, killing the visual contrast
+   between "todo / done / current" states. */
+#view-game-social .progress-dot,
+#view-game-social .result-bar-track {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 /* ============================================================
    INTERVIEW VIEW
    ============================================================ */
