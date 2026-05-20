@@ -34,9 +34,25 @@
   --ease:          cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Dark-mode overrides to match the dashboard screenshot */
+:root {
+  --sidebar-gradient-start: #0d0420;
+  --sidebar-gradient-end: #3b1760;
+  --bg-start: #05020a;
+  --bg-end: #0c0420;
+  --paper: #09050f;
+  --paper-2: #0f0816;
+  --surface: rgba(8,6,14,0.72);
+  --rule: rgba(255,255,255,0.04);
+  --rule-strong: rgba(255,255,255,0.06);
+  --ink: #F5F3FF;
+  --ink-2: #D7CFF8;
+  --muted: #B9A9E8;
+}
+
 html, body {
   height: 100%;
-  background: var(--paper);
+  background: linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 60%);
   font-family: 'Poppins', system-ui, sans-serif;
   font-weight: 300;
   color: var(--ink);
@@ -48,7 +64,9 @@ a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; }
 
 /* ── LAYOUT ── */
-.app { display: flex; height: 100vh; overflow: hidden; }
+.app { 
+  background-image:url("./../logos/BG.png");
+  display: flex; height: 100vh; overflow: hidden; }
 
 /* ============================================================
    SIDEBAR
@@ -68,9 +86,11 @@ button { font-family: inherit; cursor: pointer; }
   font-family: 'Montserrat', sans-serif;
   font-weight: 700;
   font-size: 1.1rem;
-  letter-spacing: -0.01em;
   color: var(--ink);
   padding: 0 1.4rem 2.2rem;
+  /* make uppercase for letter */
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
   display: flex; align-items: center; gap: 0.55rem;
 }
 .sidebar-logo .logo-star {
@@ -251,7 +271,7 @@ button { font-family: inherit; cursor: pointer; }
   animation: bubble-in 0.32s var(--ease) both;
 }
 .bubble-ai {
-  background: var(--violet-mist);
+  background: var(--violet);
   color: var(--ink);
   align-self: flex-start;
   border-bottom-left-radius: 4px;
