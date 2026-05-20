@@ -10,18 +10,23 @@ Each offer starts at 0 points. Points are added for:
   - proud_creation keywords matching skills               (+1 per match)
   - work_type preference matching job characteristics     (+2 if match)
   - success_vision matching job type/level hints          (+1 if match)
-  - skills built through games matching offer keywords    (up to +2 per hit,
+  - skills built through games matching offer keywords    (up to +4 per hit,
                                                            scaled by skill level)
 
-Final score is normalised to 0–100 %.
+Final score is normalised against a calibrated ceiling so the percentage
+reflects genuine match quality, not just rank within the result set.
 """
 
+import os
 import sqlite3
 import re
-from typing import Any
 
 
-DB_PATH = "jobs.db"
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "jobs.db")
+
+# Score representing a strong, well-rounded match (interview + some game progress).
+# Offers at or above this threshold show 100 %; weaker matches show proportionally less.
+_SCORE_CEILING = 40
 
 # ── Keyword maps ──────────────────────────────────────────────────────────────
 
@@ -50,8 +55,8 @@ LEVEL_FOR_SITUATION = {
     "vocational":   ["entry", "internship", "any"],
     "bachelor":     ["entry", "mid", "any"],
     "master":       ["mid", "senior", "any"],
-    "part_time":    ["mid", "senior", "any"],
-    "full_time":    ["mid", "senior", "any"],
+    "part_time":    ["entry", "mid", "any"],
+    "full_time":    ["entry", "mid", "any"],
     None:           ["entry", "any"],
 }
 
@@ -83,25 +88,26 @@ def _tokens(text: str) -> list[str]:
     return re.findall(r"[a-z]+", text.lower())
 
 
-def _kw_hits(keywords: list[str], haystack: str) -> int:
-    """Count how many keywords appear in haystack."""
-    return sum(1 for kw in keywords if kw in haystack)
+def _kw_hits(keywords: list[str], haystack_tokens: set[str]) -> int:
+    """Count how many keywords appear as whole words in haystack_tokens."""
+    return sum(1 for kw in keywords if kw in haystack_tokens)
 
 
-def score_offer(offer: dict, profile: dict) -> int:
+def score_offer(offer: dict, profile: dict) -> float:
     """Return a raw match score for one offer against the user profile."""
     score = 0
     haystack = (offer["title"] + " " + (offer["skills_raw"] or "")).lower()
+    haystack_tokens = set(_tokens(haystack))
 
     # 1. Interests → skills match (+2 each)
     for interest in profile.get("interests", []):
-        score += _kw_hits(_tokens(interest), haystack) * 2
+        score += _kw_hits(_tokens(interest), haystack_tokens) * 2
 
     # 2. Field idea → title/skills match (+3 each keyword)
     field_idea = profile.get("field_idea", {})
     if field_idea.get("clarity") in ("yes", "vague") and field_idea.get("field"):
         for tok in _tokens(field_idea["field"]):
-            if len(tok) > 3 and tok in haystack:
+            if len(tok) > 3 and tok in haystack_tokens:
                 score += 3
 
     # 2b. Current field of study or job role → title/skills match
@@ -112,37 +118,37 @@ def score_offer(offer: dict, profile: dict) -> int:
     if field_or_role:
         weight = 1 if profile.get("job_change") == "change" else 4
         for tok in _tokens(field_or_role):
-            if len(tok) > 3 and tok in haystack:
+            if len(tok) > 3 and tok in haystack_tokens:
                 score += weight
 
     # 3. Favorite subjects → skills (+1 each)
     for subj in profile.get("favorite_subjects", []):
-        score += _kw_hits(_tokens(subj), haystack)
+        score += _kw_hits(_tokens(subj), haystack_tokens)
 
     # 4. Proud creation description → skills (+1 each)
     creation = profile.get("proud_creation", {})
     if creation.get("has_created") and creation.get("description"):
         for tok in _tokens(creation["description"]):
-            if len(tok) > 4 and tok in haystack:
+            if len(tok) > 4 and tok in haystack_tokens:
                 score += 1
 
     # 5. Work type preference (+2 if matching keywords found)
     work_type = profile.get("work_type", "mixed")
     if work_type in WORKTYPE_KEYWORDS:
-        if _kw_hits(WORKTYPE_KEYWORDS[work_type], haystack):
+        if _kw_hits(WORKTYPE_KEYWORDS[work_type], haystack_tokens):
             score += 2
 
     # 6. Success vision (+1 per matching keyword)
     vision = profile.get("success_vision", {})
     primary = vision.get("primary", "")
     if primary in SUCCESS_KEYWORDS:
-        score += _kw_hits(SUCCESS_KEYWORDS[primary], haystack)
+        score += _kw_hits(SUCCESS_KEYWORDS[primary], haystack_tokens)
 
     # 7. Skills built up through games.
     # `profile["skills"]` is { skill_key: {"level": 0-100, "samples": int} }.
     # A skill contributes only in proportion to its level: at level 0 it adds
     # nothing (so users who never played games score exactly as before), at
-    # level 100 each keyword hit is worth a full +2.
+    # level 100 each keyword hit is worth a full +4.
     skills = profile.get("skills", {})
     if skills:
         for skill_key, entry in skills.items():
@@ -152,10 +158,9 @@ def score_offer(offer: dict, profile: dict) -> int:
             keywords = SKILL_KEYWORDS.get(skill_key)
             if not keywords:
                 continue
-            hits = _kw_hits(keywords, haystack)
+            hits = _kw_hits(keywords, haystack_tokens)
             if hits:
-                # level/100 scales 0..1; *2 makes a maxed skill worth +2 per hit
-                score += (level / 100.0) * hits * 2
+                score += (level / 100.0) * hits * 4
 
     return score
 
@@ -234,10 +239,10 @@ def find_top_offers(profile: dict, top_n: int = 5) -> list[dict]:
     scored.sort(key=lambda x: x["score"], reverse=True)
     top = scored[:top_n]
 
-    # Normalise score to 0–100 %
-    max_score = top[0]["score"] if top and top[0]["score"] > 0 else 1
+    # Normalise against a fixed ceiling rather than the top result,
+    # so the percentage reflects genuine match quality, not just rank.
     for offer in top:
-        offer["match_pct"] = min(100, round(offer["score"] / max_score * 100))
+        offer["match_pct"] = min(100, round(offer["score"] / _SCORE_CEILING * 100))
         raw = offer.pop("skills_raw", "") or ""
         offer["skills_list"] = [s.strip() for s in raw.split(",") if s.strip()][:20]
         offer.pop("score", None)
