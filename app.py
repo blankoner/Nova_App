@@ -5,6 +5,7 @@ from collections import Counter
 from flask import Flask, render_template, request, session, jsonify
 from dotenv import load_dotenv
 from groq import Groq
+from groq import AuthenticationError as GroqAuthError, RateLimitError as GroqRateLimitError
 from matcher import find_top_offers
 import skills as skills_mod
 import social_scenes
@@ -23,6 +24,13 @@ if MOCK_MODE:
     client = None
 else:
     client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
+
+def _fallback_to_mock(reason: str):
+    global MOCK_MODE, client
+    MOCK_MODE = True
+    client = None
+    print(f"[MOCK MODE] {reason} — falling back to scripted responses.")
 
 
 MOCK_QUESTIONS = [
@@ -216,13 +224,23 @@ def chat_with_groq(messages):
     """Sends messages to Groq and returns the response (or a scripted mock)."""
     if MOCK_MODE:
         return mock_chat_response(messages)
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=messages,
-        max_tokens=600,
-        temperature=0.7,
-    )
-    return response.choices[0].message.content
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=messages,
+            max_tokens=600,
+            temperature=0.7,
+        )
+        return response.choices[0].message.content
+    except GroqAuthError:
+        _fallback_to_mock("Groq API returned 403 — invalid or expired API key")
+        return mock_chat_response(messages)
+    except GroqRateLimitError:
+        _fallback_to_mock("Groq rate limit reached")
+        return mock_chat_response(messages)
+    except Exception as exc:
+        _fallback_to_mock(f"Groq API error: {exc}")
+        return mock_chat_response(messages)
 
 
 def parse_profile_from_response(text):

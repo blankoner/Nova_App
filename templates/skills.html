@@ -123,8 +123,12 @@
               {% if item.count >= 3 %}{% set chip_cls = "chip-hot" %}
               {% elif item.count >= 2 %}{% set chip_cls = "chip-warm" %}
               {% else %}{% set chip_cls = "" %}{% endif %}
-              <span class="skill-chip {{ chip_cls }}">{{ item.skill | title }}</span>
+              <span class="skill-chip {{ chip_cls }}" data-skill="{{ item.skill | lower }}">{{ item.skill | title }}</span>
             {% endfor %}
+          </div>
+          <div class="jskills-cloud-footer">
+            <span class="jskills-hint">Click to highlight · hover for ×</span>
+            <button id="jskills-reset-btn" class="jskills-reset-btn" style="display:none" aria-live="polite"></button>
           </div>
         </section>
       {% endif %}
@@ -153,7 +157,7 @@
               {% if offer.skills_list %}
                 <div class="jskills-chips">
                   {% for skill in offer.skills_list %}
-                    <span class="skill-chip">{{ skill | title }}</span>
+                    <span class="skill-chip" data-skill="{{ skill | lower }}">{{ skill | title }}</span>
                   {% endfor %}
                 </div>
               {% else %}
@@ -171,6 +175,7 @@
 </main>
 
 <script>
+  // ── Tab switching ────────────────────────────────────────────
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => {
@@ -183,6 +188,83 @@
       document.getElementById(btn.dataset.tab).classList.add('active');
     });
   });
+
+  // ── Job-skills chip interactivity ────────────────────────────
+  (function () {
+    const USER = {{ name | tojson }};
+    const STORE_KEY = 'nova_jskills_v1_' + USER;
+
+    function loadState() {
+      try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); }
+      catch { return {}; }
+    }
+    function saveState(s) {
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        highlighted: [...s.highlighted],
+        hidden:      [...s.hidden],
+      }));
+    }
+
+    const raw = loadState();
+    const state = {
+      highlighted: new Set(raw.highlighted || []),
+      hidden:      new Set(raw.hidden      || []),
+    };
+
+    const resetBtn = document.getElementById('jskills-reset-btn');
+
+    function render() {
+      document.querySelectorAll('.skill-chip[data-skill]').forEach(chip => {
+        const sk = chip.dataset.skill;
+        chip.classList.toggle('chip-starred', state.highlighted.has(sk));
+        chip.classList.toggle('chip-hidden',  state.hidden.has(sk));
+      });
+      if (resetBtn) {
+        const n = state.hidden.size;
+        resetBtn.textContent = n ? 'Show hidden (' + n + ')' : '';
+        resetBtn.style.display = n ? 'inline-flex' : 'none';
+      }
+    }
+
+    document.querySelectorAll('.skill-chip[data-skill]').forEach(chip => {
+      // × dismiss button — injected once
+      const xBtn = document.createElement('button');
+      xBtn.className = 'chip-remove-btn';
+      xBtn.textContent = '×';
+      xBtn.setAttribute('aria-label', 'Hide this skill');
+      xBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        const sk = chip.dataset.skill;
+        state.hidden.add(sk);
+        state.highlighted.delete(sk);
+        saveState(state);
+        render();
+      });
+      chip.appendChild(xBtn);
+
+      // click body = toggle highlight
+      chip.addEventListener('click', () => {
+        const sk = chip.dataset.skill;
+        if (state.highlighted.has(sk)) {
+          state.highlighted.delete(sk);
+        } else {
+          state.highlighted.add(sk);
+        }
+        saveState(state);
+        render();
+      });
+    });
+
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        state.hidden.clear();
+        saveState(state);
+        render();
+      });
+    }
+
+    render();
+  })();
 </script>
 </body>
 </html>
