@@ -10,6 +10,7 @@
 
   let calYear, calMonth, selectedDate = null;
   let notes = {};   // { "YYYY-MM-DD": "note text" } — loaded from the backend
+  let usedPrompts = new Set(); // prompt texts already inserted for the current day
 
   function dateKey(y, m, d) {
     return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -85,6 +86,11 @@
 
   function selectDay(y, m, d) {
     selectedDate = dateKey(y, m, d);
+    usedPrompts.clear();
+    document.querySelectorAll('.note-prompt-chip').forEach(b => {
+      b.disabled = false;
+      b.classList.remove('used');
+    });
 
     const dateObj = new Date(y, m, d);
     const labelEl = document.getElementById('noteDateLabel');
@@ -114,14 +120,16 @@
     renderCalendar();
   }
 
-  function insertPrompt(text) {
+  function insertPrompt(text, btn) {
     const ta = document.getElementById('noteText');
     if (ta.disabled) return;
-    const pos = ta.selectionStart;
-    const before = ta.value.substring(0, pos);
-    const after = ta.value.substring(ta.selectionEnd);
-    ta.value = before + text + after;
-    ta.selectionStart = ta.selectionEnd = pos + text.length;
+    if (usedPrompts.has(text)) return;
+    usedPrompts.add(text);
+    if (btn) { btn.disabled = true; btn.classList.add('used'); }
+
+    const prefix = ta.value.length > 0 && !ta.value.endsWith('\n') ? '\n' : '';
+    ta.value += prefix + text;
+    ta.selectionStart = ta.selectionEnd = ta.value.length;
     ta.focus();
     onNoteInput();
   }

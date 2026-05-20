@@ -427,6 +427,14 @@ def dashboard():
     # Keep it in the (lightweight) session so later requests know who's logged
     # in — the actual data lives in the database, keyed by this name.
     name = request.args.get("name", "Guest").strip() or "Guest"
+
+    # Guest data is ephemeral: wipe the stored profile whenever a new browser
+    # session begins (i.e. no user_name cookie yet). Page navigations within
+    # the same session leave the profile intact.
+    if skills_mod._safe_name(name) == "guest" and \
+            skills_mod._safe_name(session.get("user_name", "")) != "guest":
+        skills_mod.delete_profile("guest")
+
     session["user_name"] = name
     # Make sure a profile row exists from the first visit, so the skills page,
     # game endpoints and app-state endpoints always have something to read.

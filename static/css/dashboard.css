@@ -998,6 +998,8 @@ color:whitesmoke;
   white-space: nowrap;
 }
 .note-prompt-chip:hover { border-color: var(--violet); color: var(--violet); background: var(--violet-tint); }
+.note-prompt-chip.used,
+.note-prompt-chip:disabled { opacity: 0.38; cursor: not-allowed; pointer-events: none; }
 
 .note-textarea {
   flex: 1; border: none; outline: none; resize: none;
