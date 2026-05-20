@@ -676,8 +676,11 @@ border: 1px solid rgba(23, 23, 23, 0.4);
 
 .matches-hint {
   max-width: 720px;
-  background: var(--surface);
-  border: 1px solid var(--rule);
+background: rgba(23, 23, 23, 0.69);
+box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+backdrop-filter: blur(12.2px);
+-webkit-backdrop-filter: blur(12.2px);
+border: 1px solid rgba(23, 23, 23, 0.4);
   border-radius: 12px;
   padding: 2.4rem 2.6rem 2.6rem;
   position: relative;
@@ -862,9 +865,12 @@ border: 1px solid rgba(23, 23, 23, 0.4);
 
 /* Note panel */
 .note-panel {
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: 12px;
+background: rgba(23, 23, 23, 0.69);
+box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+backdrop-filter: blur(12.2px);
+-webkit-backdrop-filter: blur(12.2px);
+border: 1px solid rgba(23, 23, 23, 0.4);
+color:whitesmoke;
   display: flex; flex-direction: column;
   overflow: hidden;
 }
