@@ -75,6 +75,8 @@ border: 1px solid rgba(79, 50, 118, 0.3);
 
   padding: 2.4rem 2rem 2.2rem;
   overflow: hidden;
+
+  
 }
 
 .auth-brand {
@@ -124,6 +126,7 @@ border: 1px solid rgba(79, 50, 118, 0.3);
 
 .form-panel {
   display: none;
+  
 }
 
 .form-panel.active {
@@ -132,6 +135,7 @@ border: 1px solid rgba(79, 50, 118, 0.3);
 
 .input-field {
   margin-bottom: 1rem;
+  
 }
 
 .input-field input {
@@ -170,6 +174,32 @@ border: 1px solid rgba(79, 50, 118, 0.3);
 }
 
 .btn-primary:hover {
+  transform: translateY(-1px);
+}
+
+/* Secondary "ghost" button — lets the user skip auth and continue as a guest.
+   Visually subordinate to the primary CTA: translucent fill, soft border. */
+.btn-ghost {
+  display: block;
+  width: 100%;
+  margin-top: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 18px;
+  padding: 0.92rem 1.1rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.28);
   transform: translateY(-1px);
 }
 
