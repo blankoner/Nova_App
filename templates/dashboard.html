@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,344 +8,355 @@
   <title>Nova — Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=Poppins:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 </head>
+
 <body>
-<div class="app">
+  <div class="app">
 
-  <!-- ── SIDEBAR ──────────────────────────────────────────── -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <svg class="logo-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
-        <path d="M12 0 L13.6 9.4 L23 11 L13.6 12.6 L12 22 L10.4 12.6 L1 11 L10.4 9.4 Z"/>
-      </svg>
-      Nova
-    </div>
-
-    <p class="nav-label">Menu</p>
-
-    <a class="nav-item active" id="nav-interview" onclick="switchView('interview')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-      </svg>
-      Career Interview
-    </a>
-
-    <a class="nav-item" id="nav-todo" onclick="switchView('todo')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-      </svg>
-      To-Do List
-    </a>
-
-    <a class="nav-item" id="nav-matches" onclick="switchView('matches')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-      </svg>
-      My Matches
-    </a>
-
-    <a class="nav-item" id="nav-skills" href="/skills">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/>
-      </svg>
-      Skills
-    </a>
-
-    <a class="nav-item" id="nav-game-strategy" href="/game/strategy">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M3 11l9-8 9 8M5 10v10h14V10M9 21v-6h6v6"/>
-      </svg>
-      Strategy Game
-    </a>
-
-    <a class="nav-item" id="nav-game-social" href="/game/social">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
-      </svg>
-      Social Game
-    </a>
-
-    <a class="nav-item" id="nav-pomodoro" onclick="switchView('pomodoro')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <circle cx="12" cy="12" r="10"/>
-        <polyline points="12 6 12 12 16 14"/>
-      </svg>
-      Pomodoro
-    </a>
-
-    <a class="nav-item" id="nav-journal" onclick="switchView('journal')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
-        <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-      </svg>
-      Journal
-    </a>
-
-    <div class="sidebar-spacer"></div>
-
-    <div class="sidebar-user">
-      <div class="avatar" id="avatarEl">G</div>
-      <div class="user-info">
-        <div class="user-name" id="userName">Guest</div>
-        <div class="user-role">Explorer</div>
+    <!-- ── SIDEBAR ──────────────────────────────────────────── -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <svg class="logo-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+          <path d="M12 0 L13.6 9.4 L23 11 L13.6 12.6 L12 22 L10.4 12.6 L1 11 L10.4 9.4 Z" />
+        </svg>
+        Nova
       </div>
-    </div>
-  </aside>
 
-  <!-- ── MAIN ─────────────────────────────────────────────── -->
-  <div class="main">
-    <div class="topbar">
-      <div>
-        <div class="topbar-title" id="topbarTitle">Career Interview</div>
-        <div class="topbar-sub" id="topbarSub">Answer a few questions to find your path</div>
-      </div>
-    </div>
+      <p class="nav-label">Menu</p>
 
-    <div class="content">
+      <a class="nav-item active" id="nav-interview" onclick="switchView('interview')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+        Career Assistant
+      </a>
+      <a class="nav-item" id="nav-skills" href="/skills">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z" />
+        </svg>
+        Skills
+      </a>
+      <a class="nav-item" id="nav-matches" onclick="switchView('matches')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
+        </svg>
+        Work Path
+      </a>
+      <a class="nav-item" id="nav-todo" onclick="switchView('todo')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M9 11l3 3L22 4" />
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+        </svg>
+        To-Do List
+      </a>
+      <a class="nav-item" id="nav-pomodoro" onclick="switchView('pomodoro')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+        Pomodoro Timer
+      </a>
+      <a class="nav-item" id="nav-journal" onclick="switchView('journal')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+        Journal Calendar
+      </a>
 
-      <!-- VIEW: Interview -->
-      <div class="view active" id="view-interview">
-        <div class="interview-layout">
-          <div class="chat-card">
-            <div class="chat-header">
-              <div class="chat-dot"></div>
-              <div>
-                <div class="chat-header-text">Nova AI</div>
-                <div class="chat-header-sub">Career advisor · online</div>
-              </div>
-            </div>
-            <div class="chat-scroll" id="chatBox">
-              <!-- bubbles injected here -->
-            </div>
-            <div class="chat-footer">
-              <input type="text" id="userInput" placeholder="Type your answer…" autocomplete="off">
-              <button class="send-btn" id="sendBtn">
-                <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
-              </button>
-            </div>
-          </div>
+      <a class="nav-item" id="nav-game-strategy" href="/game/strategy">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M3 11l9-8 9 8M5 10v10h14V10M9 21v-6h6v6" />
+        </svg>
+        Strategy Game
+      </a>
 
-          <aside class="topics-card">
-            <p class="topics-eyebrow">What we'll talk about</p>
-            <h3 class="topics-title">Nine quick<br><em>signals.</em></h3>
-            <p class="topics-sub">One question at a time. Skip nothing — every answer sharpens your matches.</p>
-            <ol class="topics-list">
-              <li><span>01</span> Age</li>
-              <li><span>02</span> Current situation</li>
-              <li><span>03</span> Interests & hobbies</li>
-              <li><span>04</span> Field ideas</li>
-              <li><span>05</span> Vision of success</li>
-              <li><span>06</span> Work style</li>
-              <li><span>07</span> Something you built</li>
-              <li><span>08</span> Favorite subjects</li>
-              <li><span>09</span> Hands-on or conceptual</li>
-            </ol>
-          </aside>
+      <a class="nav-item" id="nav-game-social" href="/game/social">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+        Social Game
+      </a>
+
+
+
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="sidebar-user">
+        <div class="avatar" id="avatarEl">G</div>
+        <div class="user-info">
+          <div class="user-name" id="userName">Guest</div>
+          <div class="user-role">Explorer</div>
         </div>
+      </div>
+    </aside>
 
-        <div id="resultBanner" style="display:none" class="result-banner">
-          <div class="result-banner-body">
-            <span class="result-banner-eyebrow">Interview complete</span>
-            <span class="result-banner-title" id="resultBannerText">Your matches are ready.</span>
-          </div>
-          <a href="/wyniki">See matches →</a>
+    <!-- ── MAIN ─────────────────────────────────────────────── -->
+    <div class="main">
+      <div class="topbar">
+        <div>
+          <div class="topbar-title" id="topbarTitle">Career Interview</div>
+          <div class="topbar-sub" id="topbarSub">Answer a few questions to find your path</div>
         </div>
       </div>
 
-      <!-- VIEW: To-Do -->
-      <div class="view" id="view-todo">
-        <div class="todo-wrap">
-          <div class="todo-header-row">
-            <h2 class="todo-heading">My Tasks</h2>
-            <span class="todo-count" id="todoCount">0 left</span>
+      <div class="content">
+
+        <!-- VIEW: Interview -->
+        <div class="view active" id="view-interview">
+          <div class="interview-layout">
+            <div class="chat-card">
+              <div class="chat-header">
+                <div class="chat-dot"></div>
+                <div>
+                  <div class="chat-header-text">Nova AI</div>
+                  <div class="chat-header-sub">Career advisor · online</div>
+                </div>
+              </div>
+              <div class="chat-scroll" id="chatBox">
+                <!-- bubbles injected here -->
+              </div>
+              <div class="chat-footer">
+                <input type="text" id="userInput" placeholder="Type your answer…" autocomplete="off">
+                <button class="send-btn" id="sendBtn">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M2 21l21-9L2 3v7l15 2-15 2z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <aside class="topics-card">
+              <p class="topics-eyebrow">What we'll talk about</p>
+              <h3 class="topics-title">Nine quick<br><em>signals.</em></h3>
+              <p class="topics-sub">One question at a time. Skip nothing — every answer sharpens your matches.</p>
+              <ol class="topics-list">
+                <li><span>01</span> Age</li>
+                <li><span>02</span> Current situation</li>
+                <li><span>03</span> Interests & hobbies</li>
+                <li><span>04</span> Field ideas</li>
+                <li><span>05</span> Vision of success</li>
+                <li><span>06</span> Work style</li>
+                <li><span>07</span> Something you built</li>
+                <li><span>08</span> Favorite subjects</li>
+                <li><span>09</span> Hands-on or conceptual</li>
+              </ol>
+            </aside>
           </div>
 
-          <div class="todo-add-row">
-            <input type="text" id="todoInput" placeholder="Add a new task… and press Enter">
-            <input type="datetime-local" id="todoDueInput" title="Due date (optional)">
-            <button class="add-btn" onclick="addTodo()">+ Add</button>
+          <div id="resultBanner" style="display:none" class="result-banner">
+            <div class="result-banner-body">
+              <span class="result-banner-eyebrow">Interview complete</span>
+              <span class="result-banner-title" id="resultBannerText">Your matches are ready.</span>
+            </div>
+            <a href="/wyniki">See matches →</a>
           </div>
-
-          <div class="filter-tabs">
-            <button class="filter-tab active" onclick="setFilter('all', this)">All</button>
-            <button class="filter-tab" onclick="setFilter('active', this)">Active</button>
-            <button class="filter-tab" onclick="setFilter('done', this)">Done</button>
-          </div>
-
-          <div class="todo-list" id="todoList"></div>
         </div>
-      </div>
 
-      <!-- VIEW: Matches -->
-      <div class="view" id="view-matches">
-        <div class="matches-hint">
-          <p class="hint-eyebrow">Step 03 — Matches</p>
-          <h3 class="hint-title">Your matches<br><em>will appear here.</em></h3>
-          <p class="hint-body">Complete the Career Interview first — Nova uses your answers to rank real roles and studies. Here's a peek at the layout you'll see.</p>
+        <!-- VIEW: To-Do -->
+        <div class="view" id="view-todo">
+          <div class="todo-wrap">
+            <div class="todo-header-row">
+              <h2 class="todo-heading">My Tasks</h2>
+              <span class="todo-count" id="todoCount">0 left</span>
+            </div>
 
-          <div class="ghost-cards" aria-hidden="true">
-            <div class="ghost-card">
-              <div class="ghost-pct">82<span>%</span></div>
-              <div class="ghost-body">
-                <div class="ghost-line w-70"></div>
-                <div class="ghost-line w-40 muted"></div>
-              </div>
-              <div class="ghost-tag">match</div>
+            <div class="todo-add-row">
+              <input type="text" id="todoInput" placeholder="Add a new task… and press Enter">
+              <input type="datetime-local" id="todoDueInput" title="Due date (optional)">
+              <button class="add-btn" onclick="addTodo()">+ Add</button>
             </div>
-            <div class="ghost-card mid">
-              <div class="ghost-pct">67<span>%</span></div>
-              <div class="ghost-body">
-                <div class="ghost-line w-60"></div>
-                <div class="ghost-line w-45 muted"></div>
-              </div>
-              <div class="ghost-tag">match</div>
+
+            <div class="filter-tabs">
+              <button class="filter-tab active" onclick="setFilter('all', this)">All</button>
+              <button class="filter-tab" onclick="setFilter('active', this)">Active</button>
+              <button class="filter-tab" onclick="setFilter('done', this)">Done</button>
             </div>
-            <div class="ghost-card low">
-              <div class="ghost-pct">51<span>%</span></div>
-              <div class="ghost-body">
-                <div class="ghost-line w-55"></div>
-                <div class="ghost-line w-35 muted"></div>
-              </div>
-              <div class="ghost-tag">match</div>
-            </div>
+
+            <div class="todo-list" id="todoList"></div>
           </div>
-
-          <a href="/wyniki" class="btn-violet">View my matches →</a>
         </div>
-      </div>
 
-      <!-- VIEW: Pomodoro -->
-      <div class="view" id="view-pomodoro">
-        <div class="pomo-wrap">
+        <!-- VIEW: Matches -->
+        <div class="view" id="view-matches">
+          <div class="matches-hint">
+            <p class="hint-eyebrow">Step 03 — Matches</p>
+            <h3 class="hint-title">Your matches<br><em>will appear here.</em></h3>
+            <p class="hint-body">Complete the Career Interview first — Nova uses your answers to rank real roles and
+              studies. Here's a peek at the layout you'll see.</p>
 
-          <div class="pomo-mode-tabs">
-            <button class="pomo-tab active" onclick="setMode('focus', this)">Focus</button>
-            <button class="pomo-tab" onclick="setMode('short', this)">Short Break</button>
-            <button class="pomo-tab" onclick="setMode('long', this)">Long Break</button>
+            <div class="ghost-cards" aria-hidden="true">
+              <div class="ghost-card">
+                <div class="ghost-pct">82<span>%</span></div>
+                <div class="ghost-body">
+                  <div class="ghost-line w-70"></div>
+                  <div class="ghost-line w-40 muted"></div>
+                </div>
+                <div class="ghost-tag">match</div>
+              </div>
+              <div class="ghost-card mid">
+                <div class="ghost-pct">67<span>%</span></div>
+                <div class="ghost-body">
+                  <div class="ghost-line w-60"></div>
+                  <div class="ghost-line w-45 muted"></div>
+                </div>
+                <div class="ghost-tag">match</div>
+              </div>
+              <div class="ghost-card low">
+                <div class="ghost-pct">51<span>%</span></div>
+                <div class="ghost-body">
+                  <div class="ghost-line w-55"></div>
+                  <div class="ghost-line w-35 muted"></div>
+                </div>
+                <div class="ghost-tag">match</div>
+              </div>
+            </div>
+
+            <a href="/wyniki" class="btn-violet">View my matches →</a>
           </div>
-
-          <div class="pomo-card" id="pomoCard">
-            <span class="pomo-label" id="pomoLabel">Focus time</span>
-            <div class="pomo-time" id="pomoTime">25:00</div>
-
-            <div class="pomo-sessions" id="pomoDots"></div>
-
-            <div class="pomo-controls">
-              <button class="pomo-btn pomo-btn-icon" onclick="resetTimer()" title="Reset">↺</button>
-              <button class="pomo-btn pomo-btn-main" id="pomoStartBtn" onclick="toggleTimer()">START</button>
-              <button class="pomo-btn pomo-btn-icon" onclick="skipSession()" title="Skip">⏭</button>
-            </div>
-          </div>
-
-          <div class="pomo-settings">
-            <p class="pomo-settings-title">Timer settings</p>
-            <div class="pomo-setting-row">
-              <label>Focus (min)</label>
-              <div class="pomo-num-input">
-                <button onclick="adjustSetting('focus', -5)">−</button>
-                <span id="set-focus">25</span>
-                <button onclick="adjustSetting('focus', +5)">+</button>
-              </div>
-            </div>
-            <div class="pomo-setting-row">
-              <label>Short break (min)</label>
-              <div class="pomo-num-input">
-                <button onclick="adjustSetting('short', -1)">−</button>
-                <span id="set-short">5</span>
-                <button onclick="adjustSetting('short', +1)">+</button>
-              </div>
-            </div>
-            <div class="pomo-setting-row">
-              <label>Long break (min)</label>
-              <div class="pomo-num-input">
-                <button onclick="adjustSetting('long', -5)">−</button>
-                <span id="set-long">15</span>
-                <button onclick="adjustSetting('long', +5)">+</button>
-              </div>
-            </div>
-            <div class="pomo-setting-row">
-              <label>Sessions before long break</label>
-              <div class="pomo-num-input">
-                <button onclick="adjustSetting('sessions', -1)">−</button>
-                <span id="set-sessions">4</span>
-                <button onclick="adjustSetting('sessions', +1)">+</button>
-              </div>
-            </div>
-          </div>
-
         </div>
-      </div>
 
-      <!-- VIEW: Journal -->
-      <div class="view" id="view-journal">
-        <div class="journal-wrap">
+        <!-- VIEW: Pomodoro -->
+        <div class="view" id="view-pomodoro">
+          <div class="pomo-wrap">
 
-          <!-- Calendar -->
-          <div class="cal-card">
-            <div class="cal-nav">
-              <button class="cal-nav-btn" onclick="calShiftMonth(-1)">‹</button>
-              <span class="cal-month-label" id="calMonthLabel"></span>
-              <button class="cal-nav-btn" onclick="calShiftMonth(+1)">›</button>
+            <div class="pomo-mode-tabs">
+              <button class="pomo-tab active" onclick="setMode('focus', this)">Focus</button>
+              <button class="pomo-tab" onclick="setMode('short', this)">Short Break</button>
+              <button class="pomo-tab" onclick="setMode('long', this)">Long Break</button>
             </div>
-            <div class="cal-grid" id="calGrid"></div>
-          </div>
 
-          <!-- Note panel -->
-          <div class="note-panel">
-            <div class="note-header">
-              <div>
-                <div class="note-date-label" id="noteDateLabel">Select a day</div>
-                <div class="note-date-sub" id="noteDateSub">Click any date on the calendar</div>
+            <div class="pomo-card" id="pomoCard">
+              <span class="pomo-label" id="pomoLabel">Focus time</span>
+              <div class="pomo-time" id="pomoTime">25:00</div>
+
+              <div class="pomo-sessions" id="pomoDots"></div>
+
+              <div class="pomo-controls">
+                <button class="pomo-btn pomo-btn-icon" onclick="resetTimer()" title="Reset">↺</button>
+                <button class="pomo-btn pomo-btn-main" id="pomoStartBtn" onclick="toggleTimer()">START</button>
+                <button class="pomo-btn pomo-btn-icon" onclick="skipSession()" title="Skip">⏭</button>
               </div>
-              <button class="note-save-btn" id="noteSaveBtn" onclick="saveNote()">Save</button>
             </div>
-            <div class="note-prompts" id="notePrompts">
-              <button class="note-prompt-chip" onclick="insertPrompt('What did I learn today? ')">💡 What I learned</button>
-              <button class="note-prompt-chip" onclick="insertPrompt('I struggled with... ')">🔥 Struggled with</button>
-              <button class="note-prompt-chip" onclick="insertPrompt('Tomorrow I want to... ')">🎯 Tomorrow's goal</button>
-              <button class="note-prompt-chip" onclick="insertPrompt('I&#39;m proud of... ')">⭐ Proud of</button>
+
+            <div class="pomo-settings">
+              <p class="pomo-settings-title">Timer settings</p>
+              <div class="pomo-setting-row">
+                <label>Focus (min)</label>
+                <div class="pomo-num-input">
+                  <button onclick="adjustSetting('focus', -5)">−</button>
+                  <span id="set-focus">25</span>
+                  <button onclick="adjustSetting('focus', +5)">+</button>
+                </div>
+              </div>
+              <div class="pomo-setting-row">
+                <label>Short break (min)</label>
+                <div class="pomo-num-input">
+                  <button onclick="adjustSetting('short', -1)">−</button>
+                  <span id="set-short">5</span>
+                  <button onclick="adjustSetting('short', +1)">+</button>
+                </div>
+              </div>
+              <div class="pomo-setting-row">
+                <label>Long break (min)</label>
+                <div class="pomo-num-input">
+                  <button onclick="adjustSetting('long', -5)">−</button>
+                  <span id="set-long">15</span>
+                  <button onclick="adjustSetting('long', +5)">+</button>
+                </div>
+              </div>
+              <div class="pomo-setting-row">
+                <label>Sessions before long break</label>
+                <div class="pomo-num-input">
+                  <button onclick="adjustSetting('sessions', -1)">−</button>
+                  <span id="set-sessions">4</span>
+                  <button onclick="adjustSetting('sessions', +1)">+</button>
+                </div>
+              </div>
             </div>
-            <textarea class="note-textarea" id="noteText"
-              placeholder="Select a day to start writing…"></textarea>
-            <div class="note-footer">
-              <span class="note-char-count" id="noteCharCount">0 characters</span>
-              <button class="note-delete-btn" id="noteDeleteBtn" onclick="deleteNote()" style="display:none">
-                Delete note
-              </button>
-            </div>
+
           </div>
-
         </div>
-      </div>
 
-    </div><!-- /content -->
-  </div><!-- /main -->
-</div><!-- /app -->
+        <!-- VIEW: Journal -->
+        <div class="view" id="view-journal">
+          <div class="journal-wrap">
 
-<!-- ── POMODORO MINI OVERLAY ──────────────────────────────────────
+            <!-- Calendar -->
+            <div class="cal-card">
+              <div class="cal-nav">
+                <button class="cal-nav-btn" onclick="calShiftMonth(-1)">‹</button>
+                <span class="cal-month-label" id="calMonthLabel"></span>
+                <button class="cal-nav-btn" onclick="calShiftMonth(+1)">›</button>
+              </div>
+              <div class="cal-grid" id="calGrid"></div>
+            </div>
+
+            <!-- Note panel -->
+            <div class="note-panel">
+              <div class="note-header">
+                <div>
+                  <div class="note-date-label" id="noteDateLabel">Select a day</div>
+                  <div class="note-date-sub" id="noteDateSub">Click any date on the calendar</div>
+                </div>
+                <button class="note-save-btn" id="noteSaveBtn" onclick="saveNote()">Save</button>
+              </div>
+              <div class="note-prompts" id="notePrompts">
+                <button class="note-prompt-chip" onclick="insertPrompt('What did I learn today? ')">💡 What I
+                  learned</button>
+                <button class="note-prompt-chip" onclick="insertPrompt('I struggled with... ')">🔥 Struggled
+                  with</button>
+                <button class="note-prompt-chip" onclick="insertPrompt('Tomorrow I want to... ')">🎯 Tomorrow's
+                  goal</button>
+                <button class="note-prompt-chip" onclick="insertPrompt('I&#39;m proud of... ')">⭐ Proud of</button>
+              </div>
+              <textarea class="note-textarea" id="noteText" placeholder="Select a day to start writing…"></textarea>
+              <div class="note-footer">
+                <span class="note-char-count" id="noteCharCount">0 characters</span>
+                <button class="note-delete-btn" id="noteDeleteBtn" onclick="deleteNote()" style="display:none">
+                  Delete note
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div><!-- /content -->
+    </div><!-- /main -->
+  </div><!-- /app -->
+
+  <!-- ── POMODORO MINI OVERLAY ──────────────────────────────────────
      Floating timer shown on every view except Pomodoro itself,
      while the timer is running. Click to jump to the full view. -->
-<div class="pomo-overlay" id="pomoOverlay" role="button" tabindex="0"
-     aria-label="Pomodoro timer — click to open" title="Open Pomodoro">
-  <div class="pomo-overlay-ring" id="pomoOverlayRing"></div>
-  <div class="pomo-overlay-body">
-    <div class="pomo-overlay-time" id="pomoOverlayTime">25:00</div>
-    <div class="pomo-overlay-label" id="pomoOverlayLabel">Focus</div>
+  <div class="pomo-overlay" id="pomoOverlay" role="button" tabindex="0" aria-label="Pomodoro timer — click to open"
+    title="Open Pomodoro">
+    <div class="pomo-overlay-ring" id="pomoOverlayRing"></div>
+    <div class="pomo-overlay-body">
+      <div class="pomo-overlay-time" id="pomoOverlayTime">25:00</div>
+      <div class="pomo-overlay-label" id="pomoOverlayLabel">Focus</div>
+    </div>
+    <button class="pomo-overlay-toggle" id="pomoOverlayToggle" aria-label="Pause or resume timer"
+      title="Pause / resume">⏸</button>
   </div>
-  <button class="pomo-overlay-toggle" id="pomoOverlayToggle"
-          aria-label="Pause or resume timer" title="Pause / resume">⏸</button>
-</div>
 
-<!-- chat.js must load before dashboard.js (which calls Nova.createChat) -->
-<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
-<script src="{{ url_for('static', filename='js/apps-store.js') }}"></script>
-<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
-<script src="{{ url_for('static', filename='js/todo.js') }}"></script>
-<script src="{{ url_for('static', filename='js/pomodoro.js') }}"></script>
-<script src="{{ url_for('static', filename='js/journal.js') }}"></script>
+  <!-- chat.js must load before dashboard.js (which calls Nova.createChat) -->
+  <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/apps-store.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/todo.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/pomodoro.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/journal.js') }}"></script>
 </body>
+
 </html>
