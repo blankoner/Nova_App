@@ -140,22 +140,31 @@
               </div>
             </div>
 
-            <!-- <aside class="topics-card">
-              <p class="topics-eyebrow">What we'll talk about</p>
-              <h3 class="topics-title">Nine quick<br><em>signals.</em></h3>
-              <p class="topics-sub">One question at a time. Skip nothing — every answer sharpens your matches.</p>
-              <ol class="topics-list">
-                <li><span>01</span> Age</li>
-                <li><span>02</span> Current situation</li>
-                <li><span>03</span> Interests & hobbies</li>
-                <li><span>04</span> Field ideas</li>
-                <li><span>05</span> Vision of success</li>
-                <li><span>06</span> Work style</li>
-                <li><span>07</span> Something you built</li>
-                <li><span>08</span> Favorite subjects</li>
-                <li><span>09</span> Hands-on or conceptual</li>
-              </ol>
-            </aside> -->
+            <!-- Topics card: swaps content the moment the interview finishes.
+                 dashboard.js wires the swap via the chat's onDone callback. -->
+            <aside class="topics-card">
+              <div class="topics-pre">
+                <p class="topics-eyebrow">What we'll talk about</p>
+                <h3 class="topics-title">Nine quick<br><em>signals.</em></h3>
+                <p class="topics-sub">One question at a time. Skip nothing — every answer sharpens your matches.</p>
+                <ol class="topics-list">
+                  <li><span>01</span> Age</li>
+                  <li><span>02</span> Current situation</li>
+                  <li><span>03</span> Interests &amp; hobbies</li>
+                  <li><span>04</span> Field ideas</li>
+                  <li><span>05</span> Vision of success</li>
+                  <li><span>06</span> Work style</li>
+                  <li><span>07</span> Something you built</li>
+                  <li><span>08</span> Favorite subjects</li>
+                  <li><span>09</span> Hands-on or conceptual</li>
+                </ol>
+              </div>
+              <div class="topics-post" hidden>
+                <p class="topics-eyebrow">All done</p>
+                <h3 class="topics-title">Interview<br><em>complete.</em></h3>
+                <p class="topics-sub">You've shared everything Nova needs. Your answers are now folded into your profile and the matches Nova suggests from here on. Nice work.</p>
+              </div>
+            </aside>
           </div>
 
           <div id="resultBanner" style="display:none" class="result-banner">

@@ -62,6 +62,13 @@ document.addEventListener("DOMContentLoaded", () => {
         bannerText.textContent =
           "🎯 Interview complete! Ask me anything below, or see your matches.";
       }
+      // Swap the topics-card from the pre-interview agenda to the post-
+      // interview encouragement / advisor-mode prompts. Also fires on page
+      // reload when /chat-history reports the interview is already done.
+      const topicsPre  = document.querySelector(".topics-pre");
+      const topicsPost = document.querySelector(".topics-post");
+      if (topicsPre)  topicsPre.hidden  = true;
+      if (topicsPost) topicsPost.hidden = false;
     }
   });
   chat.start();
