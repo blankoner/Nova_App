@@ -235,6 +235,15 @@ border: 1px solid rgba(79, 50, 118, 0.3);
   padding: 0;
 }
 
+/* ── Matches view: clear bleed-through from skills.css ─────────────────
+   skills.css's `.hero-title` rule has `transform: translateX(-510px)` (added
+   for the standalone skills page). wyniki.css redeclares `.hero-title` but
+   doesn't touch `transform`, so the translate leaks into the matches view
+   that lives inside the dashboard and shoves the title off-screen left. */
+#view-matches .hero-title {
+  transform: none;
+}
+
 /* ── Strategy game: bigger territory circles ──────────────────────────
    Standalone game-strategy.css sized territories at 64×64 (legible at the
    page's 1080px max-width). Now that the embedded view fills the full
