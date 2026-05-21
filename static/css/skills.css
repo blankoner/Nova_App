@@ -89,6 +89,8 @@ a { color: inherit; text-decoration: none; }
 .page {
   max-width: 860px;
   margin: 0 auto;
+      transform: translateX(-390px);
+
   padding: clamp(2rem, 5vw, 3.5rem) clamp(1.5rem, 4vw, 3rem) 4rem;
 }
 
