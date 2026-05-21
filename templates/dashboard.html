@@ -14,6 +14,7 @@
   <!-- Per-feature stylesheets first, then dashboard.css so dashboard wins on
        conflicts (e.g. `body`, `.topbar`) but each view keeps its own specific
        rules (.skill-card, .game-board, .jskills-cloud, …). -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/wyniki.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/skills.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/game-strategy.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/game-social.css') }}">
@@ -172,7 +173,7 @@
               <span class="result-banner-eyebrow">Interview complete</span>
               <span class="result-banner-title" id="resultBannerText">Your matches are ready.</span>
             </div>
-            <a href="/wyniki">See matches →</a>
+            <a href="#" onclick="switchView('matches'); return false;">See matches →</a>
           </div>
         </div>
 
@@ -200,43 +201,140 @@
           </div>
         </div>
 
-        <!-- VIEW: Matches -->
+        <!-- VIEW: Matches (embedded from wyniki.html) -->
         <div class="view" id="view-matches">
-          <div class="matches-hint">
-            <p class="hint-eyebrow">Step 03 — Matches</p>
-            <h3 class="hint-title">Your matches<br><em>will appear here.</em></h3>
-            <p class="hint-body">Complete the Career Interview first — Nova uses your answers to rank real roles and
-              studies. Here's a peek at the layout you'll see.</p>
+          <main class="page">
 
-            <div class="ghost-cards" aria-hidden="true">
-              <div class="ghost-card">
-                <div class="ghost-pct">82<span>%</span></div>
-                <div class="ghost-body">
-                  <div class="ghost-line w-70"></div>
-                  <div class="ghost-line w-40 muted"></div>
-                </div>
-                <div class="ghost-tag">match</div>
+            <!-- ── HERO ─────────────────────────────────────────────── -->
+            <section class="hero">
+              <div class="hero-text">
+                <p class="eyebrow">Step 03 — Matches</p>
+                <h1 class="hero-title">Your top<br><em>matches.</em></h1>
+                <p class="hero-sub">Roles ranked by how well they fit what you told us. Click any match to view the full posting.</p>
               </div>
-              <div class="ghost-card mid">
-                <div class="ghost-pct">67<span>%</span></div>
-                <div class="ghost-body">
-                  <div class="ghost-line w-60"></div>
-                  <div class="ghost-line w-45 muted"></div>
-                </div>
-                <div class="ghost-tag">match</div>
-              </div>
-              <div class="ghost-card low">
-                <div class="ghost-pct">51<span>%</span></div>
-                <div class="ghost-body">
-                  <div class="ghost-line w-55"></div>
-                  <div class="ghost-line w-35 muted"></div>
-                </div>
-                <div class="ghost-tag">match</div>
-              </div>
-            </div>
 
-            <a href="/wyniki" class="btn-violet">View my matches →</a>
-          </div>
+              {% if has_interview and interview %}
+                <aside class="profile-recap">
+                  <p class="recap-label">We heard</p>
+                  <div class="recap-chips">
+                    {% for interest in interview.get("interests", []) %}
+                      <span class="chip chip-violet">{{ interest }}</span>
+                    {% endfor %}
+                    {% if interview.get("field_idea", {}).get("field") %}
+                      <span class="chip chip-mist">{{ interview.field_idea.field }}</span>
+                    {% endif %}
+                    {% for subj in interview.get("favorite_subjects", []) %}
+                      <span class="chip">{{ subj }}</span>
+                    {% endfor %}
+                    <span class="chip chip-outline">{{ interview.get("work_type", "—") }}</span>
+                    <span class="chip chip-outline">{{ interview.get("success_vision", {}).get("primary", "—") }}</span>
+                  </div>
+                </aside>
+              {% endif %}
+            </section>
+
+            <!-- ── RESULTS ──────────────────────────────────────────── -->
+            {% if not has_interview %}
+              <div class="matches-hint">
+                <p class="hint-eyebrow">Interview needed</p>
+                <h3 class="hint-title">Complete the interview<br><em>first.</em></h3>
+                <p class="hint-body">Chat with Nova on the Career Assistant — your top job matches will appear here once the interview is done.</p>
+
+                <div class="ghost-cards" aria-hidden="true">
+                  <div class="ghost-card">
+                    <div class="ghost-pct">82<span>%</span></div>
+                    <div class="ghost-body">
+                      <div class="ghost-line w-70"></div>
+                      <div class="ghost-line w-40 muted"></div>
+                    </div>
+                    <div class="ghost-tag">match</div>
+                  </div>
+                  <div class="ghost-card mid">
+                    <div class="ghost-pct">67<span>%</span></div>
+                    <div class="ghost-body">
+                      <div class="ghost-line w-60"></div>
+                      <div class="ghost-line w-45 muted"></div>
+                    </div>
+                    <div class="ghost-tag">match</div>
+                  </div>
+                  <div class="ghost-card low">
+                    <div class="ghost-pct">51<span>%</span></div>
+                    <div class="ghost-body">
+                      <div class="ghost-line w-55"></div>
+                      <div class="ghost-line w-35 muted"></div>
+                    </div>
+                    <div class="ghost-tag">match</div>
+                  </div>
+                </div>
+
+                <a href="#" onclick="switchView('interview'); return false;" class="btn-violet">Go to interview →</a>
+              </div>
+
+            {% elif job_offers %}
+              <div class="results-meta">
+                <span class="results-count"><strong>{{ job_offers|length }}</strong> matches found</span>
+                <span class="results-source">Sorted by fit</span>
+              </div>
+
+              <ol class="matches">
+                {% for offer in job_offers %}
+                  {% set pct = offer.match_pct %}
+                  {% if pct >= 80 %}{% set tier = "high" %}
+                  {% elif pct >= 50 %}{% set tier = "mid" %}
+                  {% else %}{% set tier = "low" %}{% endif %}
+
+                  <li class="match-card tier-{{ tier }}">
+                    <div class="match-rank">
+                      <span class="rank-num">{{ "%02d"|format(loop.index) }}</span>
+                    </div>
+
+                    <div class="match-score">
+                      <div class="score-num">{{ pct }}<span>%</span></div>
+                      <div class="score-label">match</div>
+                    </div>
+
+                    <div class="match-body">
+                      <h2 class="match-title">
+                        {% if offer.url %}
+                          <a href="{{ offer.url }}" target="_blank" rel="noopener">{{ offer.title }}</a>
+                        {% else %}
+                          {{ offer.title }}
+                        {% endif %}
+                      </h2>
+                      <p class="match-org">
+                        <strong>{{ offer.company or "—" }}</strong>{% if offer.location %} <span class="match-dot">·</span> {{ offer.location }}{% endif %}
+                      </p>
+                      <div class="match-tags">
+                        {% if offer.level %}<span class="tag">{{ offer.level }}</span>{% endif %}
+                        {% if offer.job_type %}<span class="tag">{{ offer.job_type }}</span>{% endif %}
+                      </div>
+                    </div>
+
+                    {% if offer.url %}
+                      <a href="{{ offer.url }}" target="_blank" rel="noopener" class="match-cta">
+                        View
+                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M2 7 H12"/><path d="M8 3 L12 7 L8 11"/>
+                        </svg>
+                      </a>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ol>
+
+            {% else %}
+              <div class="empty">
+                <p class="empty-eyebrow">No matches yet</p>
+                <h3 class="empty-title">The job database<br><em>isn't loaded.</em></h3>
+                <p class="empty-body">
+                  Make sure <code>jobs.db</code> exists. Run <code>python seed_stub_db.py</code>
+                  from the project root to seed it, then refresh this page.
+                </p>
+              </div>
+            {% endif %}
+
+            <p class="footnote">Data: LinkedIn job postings (2024) · Kaggle dataset by asaniczka</p>
+          </main>
         </div>
 
         <!-- VIEW: Pomodoro -->
@@ -665,6 +763,19 @@
   <!-- Inline scripts that used to live in templates/skills.html. They need
        Jinja for `{{ name | tojson }}` and reference DOM that lives only in
        #view-skills, so they stay inline rather than moving to a static file. -->
+  <style>
+    /* Matches view: restore the wyniki two-column hero layout */
+    #view-matches .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: clamp(2rem, 4vw, 3.5rem);
+      align-items: end;
+    }
+    @media (max-width: 720px) {
+      #view-matches .hero { grid-template-columns: 1fr; gap: 1.6rem; }
+    }
+  </style>
+
   <script>
     // ── Tab switching ────────────────────────────────────────────
     document.querySelectorAll('.tab-btn').forEach(btn => {
