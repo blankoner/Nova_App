@@ -69,6 +69,19 @@ document.addEventListener("DOMContentLoaded", () => {
       const topicsPost = document.querySelector(".topics-post");
       if (topicsPre)  topicsPre.hidden  = true;
       if (topicsPost) topicsPost.hidden = false;
+
+      // The matches view ("Work Path") is server-rendered: when /dashboard
+      // was first requested the interview wasn't done yet, so the matches
+      // section is the ghost-card placeholder. Switching views client-side
+      // doesn't re-render it — the user clicks Work Path and still sees
+      // ghosts. Fix: when the interview just finished AND the placeholder
+      // is still in the DOM, reload so the server sends the real matches.
+      // chat.js's start() will restore the conversation + advisor mode on
+      // the fresh page via /chat-history, so the user loses nothing.
+      const matchesPlaceholder = document.querySelector("#view-matches .matches-hint");
+      if (matchesPlaceholder) {
+        setTimeout(() => window.location.reload(), 700);
+      }
     }
   });
   chat.start();
