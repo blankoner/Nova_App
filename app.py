@@ -431,8 +431,7 @@ def dashboard():
     # Guest data is ephemeral: wipe the stored profile whenever a new browser
     # session begins (i.e. no user_name cookie yet). Page navigations within
     # the same session leave the profile intact.
-    if skills_mod._safe_name(name) == "guest" and \
-            skills_mod._safe_name(session.get("user_name", "")) != "guest":
+    if skills_mod._safe_name(name) == "guest" and "user_name" not in session:
         skills_mod.delete_profile("guest")
 
     session["user_name"] = name

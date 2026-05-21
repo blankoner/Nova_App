@@ -14,6 +14,7 @@
   <!-- Per-feature stylesheets first, then dashboard.css so dashboard wins on
        conflicts (e.g. `body`, `.topbar`) but each view keeps its own specific
        rules (.skill-card, .game-board, .jskills-cloud, …). -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/wyniki.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/skills.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/wyniki.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/game-strategy.css') }}">
@@ -27,7 +28,7 @@
   <!-- ── SIDEBAR ──────────────────────────────────────────── -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <img src="{{ url_for('static', filename='logos/Logo Blanc.png') }}" width="32px" aria-hidden="true">
+      <img src="{{ url_for('static', filename='logos/logo-couleur.png') }}" width="32px" aria-hidden="true">
       Nova
     </div>
 
@@ -173,7 +174,7 @@
               <span class="result-banner-eyebrow">Interview complete</span>
               <span class="result-banner-title" id="resultBannerText">Your matches are ready.</span>
             </div>
-            <a href="/wyniki">See matches →</a>
+            <a href="#" onclick="switchView('matches'); return false;">See matches →</a>
           </div>
         </div>
 
@@ -766,6 +767,19 @@
   <!-- Inline scripts that used to live in templates/skills.html. They need
        Jinja for `{{ name | tojson }}` and reference DOM that lives only in
        #view-skills, so they stay inline rather than moving to a static file. -->
+  <style>
+    /* Matches view: restore the wyniki two-column hero layout */
+    #view-matches .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: clamp(2rem, 4vw, 3.5rem);
+      align-items: end;
+    }
+    @media (max-width: 720px) {
+      #view-matches .hero { grid-template-columns: 1fr; gap: 1.6rem; }
+    }
+  </style>
+
   <script>
     // ── Tab switching ────────────────────────────────────────────
     document.querySelectorAll('.tab-btn').forEach(btn => {
