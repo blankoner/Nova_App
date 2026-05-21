@@ -602,13 +602,13 @@
                 <button class="note-save-btn" id="noteSaveBtn" onclick="saveNote()">Save</button>
               </div>
               <div class="note-prompts" id="notePrompts">
-                <button class="note-prompt-chip" onclick="insertPrompt('What did I learn today? ')">💡 What I
+                <button class="note-prompt-chip" onclick="insertPrompt('What did I learn today? ', this)">💡 What I
                   learned</button>
-                <button class="note-prompt-chip" onclick="insertPrompt('I struggled with... ')">🔥 Struggled
+                <button class="note-prompt-chip" onclick="insertPrompt('I struggled with... ', this)">🔥 Struggled
                   with</button>
-                <button class="note-prompt-chip" onclick="insertPrompt('Tomorrow I want to... ')">🎯 Tomorrow's
+                <button class="note-prompt-chip" onclick="insertPrompt('Tomorrow I want to... ', this)">🎯 Tomorrow's
                   goal</button>
-                <button class="note-prompt-chip" onclick="insertPrompt('I&#39;m proud of... ')">⭐ Proud of</button>
+                <button class="note-prompt-chip" onclick="insertPrompt(&quot;I'm proud of... &quot;, this)">⭐ Proud of</button>
               </div>
               <textarea class="note-textarea" id="noteText" placeholder="Select a day to start writing…"></textarea>
               <div class="note-footer">

@@ -293,7 +293,7 @@ a { color: inherit; text-decoration: none; }
   border-radius: 2px 2px 0 0;
 }
 .tab-btn:hover { color: var(--ink-2); }
-.tab-btn.active { color: var(--violet); }
+.tab-btn.active { color: whitesmoke; }
 .tab-btn.active::after { transform: scaleX(1); }
 
 .tab-panel { display: none; }

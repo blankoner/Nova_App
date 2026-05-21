@@ -215,6 +215,18 @@ def load_profile(name: str) -> dict:
     return _heal_profile(profile, name)
 
 
+def delete_profile(name: str) -> None:
+    """Remove a user's profile row from the database (used to reset guest data)."""
+    key = _safe_name(name)
+    with _write_lock:
+        con = _connect()
+        try:
+            con.execute("DELETE FROM profiles WHERE name = ?", (key,))
+            con.commit()
+        finally:
+            con.close()
+
+
 def save_profile(profile: dict) -> None:
     """
     Persist a profile to the database. An UPSERT keyed on the user's name —
