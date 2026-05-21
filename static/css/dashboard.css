@@ -608,8 +608,8 @@ box-shadow: 0px 0px 41px 2px rgba(90,33,182,0.6);
 }
 .filter-tab:hover { background: var(--paper-2); color: var(--ink); }
 .filter-tab.active {
-  background: var(--violet-tint);
-  color: var(--violet); border-color: var(--violet-soft);
+  background: rgba(168, 85, 247, 0.22);
+  color: #F5F3FF; border-color: var(--violet);
   font-weight: 600;
 }
 
@@ -1008,7 +1008,7 @@ color:whitesmoke;
   background: transparent;
   font-weight: 400;
 }
-.note-textarea::placeholder { color: var(--rule-strong); font-weight: 300; }
+.note-textarea::placeholder { color: var(--muted); font-weight: 300; }
 
 .note-footer {
   padding: 0.8rem 1.5rem;
