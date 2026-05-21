@@ -469,6 +469,10 @@ def dashboard():
         games_played=games_played,
         job_offers=job_offers,
         top_job_skills=top_job_skills,
+        # The matches view inside the dashboard mirrors /wyniki: when the
+        # interview is done it renders the real match cards + recap chips.
+        # `profile` is the raw interview dict (or None if not yet done).
+        profile=user_profile.get("interview"),
     )
 
 
