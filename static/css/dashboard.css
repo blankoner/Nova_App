@@ -770,8 +770,7 @@ border: 1px solid rgba(23, 23, 23, 0.4);
   position: absolute;
   top: -30%; right: -15%;
   width: 50%; aspect-ratio: 1;
-  background: radial-gradient(circle, var(--violet-soft) 0%, transparent 70%);
-  pointer-events: none;
+   pointer-events: none;
   opacity: 0.5;
 }
 .matches-hint > * { position: relative; z-index: 1; }
@@ -814,10 +813,14 @@ border: 1px solid rgba(23, 23, 23, 0.4);
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.2rem;
-  border: 1px dashed var(--rule-strong);
-  border-radius: 10px;
-  background: linear-gradient(180deg, var(--paper) 0%, transparent 100%);
-}
+/* From https://css.glass */
+background: rgba(52, 17, 108, 1);
+border-radius: 16px;
+box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+backdrop-filter: blur(8.5px);
+-webkit-backdrop-filter: blur(8.5px);
+border: 1px solid rgba(52, 17, 108, 0.3);
+ }
 .ghost-pct {
   font-family: 'Montserrat', sans-serif;
   font-size: 1.4rem;
