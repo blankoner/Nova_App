@@ -266,6 +266,13 @@
         people correctly.</p>`;
     }
 
+    // When this game runs inside the dashboard the sidebar lets us switch
+    // views without leaving the page. Use that path if it's available;
+    // otherwise (standalone /game/social) fall back to the real route.
+    const viewSkillsBtn = (typeof window.switchView === "function")
+      ? `<a href="#" onclick="switchView('skills'); return false;" class="btn">View skills</a>`
+      : `<a href="/skills" class="btn">View skills</a>`;
+
     el.stage.innerHTML = `
       <div class="social-result">
         <h2>How you connect</h2>
@@ -277,7 +284,7 @@
         <p class="save-note" id="saveNote">Saving to your profile…</p>
         <div class="social-result-actions">
           <button class="btn btn-violet" id="playAgainBtn">Play again</button>
-          <a href="/skills" class="btn">View skills</a>
+          ${viewSkillsBtn}
         </div>
       </div>`;
 
